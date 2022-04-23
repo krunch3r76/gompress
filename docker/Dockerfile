@@ -1,0 +1,8 @@
+# Dockerfile for spyu
+
+FROM alpine:latest
+VOLUME /golem/workdir
+COPY xz.sh /root
+RUN chmod +x /root/xz.sh
+RUN apk add --no-cache bash xz
+# RUN apk add --no-cache jq
