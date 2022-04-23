@@ -185,7 +185,7 @@ if __name__ == "__main__":
             )
     parser.add_argument("--divisions", default=20, help="Number partitions to distribute for invididual processing; default: %(default)d")
     parser.add_argument("--enable_logging", default=True, help="write log files; default: %(default)s")
-    parser.add_argument("--compression", default="6e", help="compression from 1 fastest to 9 most compressed (optionally postfixed with e for extra cpu time); default: %(default)d")
+    parser.add_argument("--compression", default="6e", help="compression from 1 fastest to 9 most compressed (optionally postfixed with e for extra cpu time); default: %(default)s")
     #now = datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
     #parser.set_defaults(log_file=f"gompress-{now}.log")
     args = parser.parse_args()
