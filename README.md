@@ -1,7 +1,7 @@
 # gompress
 compress a file over distributed golem nodes
 
-data is getting big. fortunately, this means more time on the clock waiting for the data to be prepared for sharing with colleagues around the world and getting paid while dreaming of an escape to a tropical island. besides this problem, gompress solves the compression problem of needing to divide the work of the xz compression algorithm to more cores than would normally be possibly (i.e. an unlimited number of cores limited only by aggregate number on the golem network).
+data is getting big. fortunately, this means more time on the clock waiting for the data to be prepared for sharing with colleagues around the world and getting paid while dreaming of an escape to a tropical island. besides this problem, gompress solves the compression problem of needing to divide the work of the xz compression algorithm to more cores than would normally be possible (i.e. an unlimited number of cores limited only by aggregate number on the golem network).
 
 # video demo
 
