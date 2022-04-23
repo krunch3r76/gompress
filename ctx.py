@@ -19,8 +19,10 @@ class CTX:
         verify(...)                     checks that all parts exist and match checksums
         """
 
-    def __init__(self, path_to_rootdir_in, path_to_target_in, part_count_in):
+    def __init__(self, path_to_rootdir_in, path_to_target_in, part_count_in, compression_level_in):
         """create/connect to a db relevant to inputs"""
+
+        self.compression_level=compression_level_in
         self.path_to_target = path_to_target_in
         self.target_open_file = self.path_to_target.open('rb')
         self.path_to_rootdir = path_to_rootdir_in
@@ -28,6 +30,13 @@ class CTX:
         self.work_directory_info = WorkDirectoryInfo(self.path_to_rootdir, self.path_to_target)
         # check if work.db exists in work_directory_info.path_to_target_wdir
         self.path_to_connection_file = self.work_directory_info.path_to_target_wdir / "work.db"
+
+        self.name_of_final_file = self.path_to_target.name + ".xz"
+        self.path_to_final_target = self.work_directory_info.path_to_final_directory / self.name_of_final_file
+        # print(f"looking for {self.path_to_final_target}")
+        if self.path_to_final_target.exists():
+            raise Exception(f"There appears to be a compressed file already for this at {self.path_to_final_target}")
+
         if self.path_to_connection_file.exists():
             self.con = sqlite3.connect(str(self.path_to_connection_file), isolation_level=None)
             # TODO: check for completeness
@@ -43,7 +52,7 @@ class CTX:
         read_range = (record[0], record[1])
         self.target_open_file.seek(read_range[0])
         bytesIO = io.BytesIO(self.target_open_file.read(read_range[1]-read_range[0]))
-        return bytesIO.getvalue() # bytesIO is cleaned up only when view is destroyed...
+        return bytesIO.getvalue() 
         # return bytesIO.getbuffer() # bytesIO is cleaned up only when view is destroyed...
 
     def list_pending_ids(self):
@@ -91,9 +100,5 @@ class CTX:
                 with open(str(path), "rb") as to_concat:
                     concat.write(to_concat.read())
                 path.unlink()
-        name_of_final_file = self.path_to_target.name + ".xz"
-        # print(f"name of final file will be {name_of_final_file}")
-        # path_to_first.rename(name_of_final_file)
-        path_to_final_target = self.work_directory_info.path_to_final_directory / name_of_final_file
-        path_to_first.rename(path_to_final_target)
+        path_to_first.rename(self.path_to_final_target)
 

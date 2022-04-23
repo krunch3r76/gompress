@@ -31,7 +31,11 @@ colorama.init()
 
 def build_parser(description: str) -> argparse.ArgumentParser:
     current_time_str = datetime.now(tz=timezone.utc).strftime("%Y%m%d_%H%M%S%z")
-    default_log_path = Path(tempfile.gettempdir()) / f"yapapi_{current_time_str}.log"
+    # default_log_path = Path(tempfile.gettempdir()) / f"yapapi_{current_time_str}.log"
+    now = datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
+    path_to_log_dir = Path(f"./logs")
+    path_to_log_dir.mkdir(exist_ok=True)
+    default_log_path = f"./logs/gompress-{now}.log"
 
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument(
