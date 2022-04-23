@@ -1,6 +1,17 @@
 from pathlib import Path
 import hashlib
 
+def sha1_hash(path_to_target):
+    sha1 = hashlib.sha1()
+    with open(path_to_target, 'rb') as f:
+        while True:
+            data = f.read(4096)
+            if not data:
+                break
+            sha1.update(data)
+    the_hash = sha1.hexdigest()
+    return the_hash
+
 class WorkDirectoryInfo:
     """
         / path_to_wdir_parent           .../
@@ -13,14 +24,7 @@ class WorkDirectoryInfo:
         self.__path_to_wdir_parent = path_to_wdir_parent_in
         self._path_to_target = path_to_target_in
         # hash path_to_target
-        sha1 = hashlib.sha1()
-        with open(self._path_to_target, 'rb') as f:
-            while True:
-                data = f.read(4096)
-                if not data:
-                    break
-                sha1.update(data)
-        the_hash = sha1.hexdigest()
+        the_hash = sha1_hash(self._path_to_target)
         # create abstract path to wdir from hash
         self.__path_to_target_wdir = self.path_to_wdir_parent / the_hash
         # create abstraction of parts directory

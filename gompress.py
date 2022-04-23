@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # gompress.py
 # authored by krunch3r (https://www.github.com/krunch3r76)
-# license GPL 3.1
+# license GPL 3.0
 # skeleton and utils adopted from Golem yapapi's code
 
 from datetime import datetime, timedelta
@@ -41,12 +41,8 @@ class MyTask(Task):
 
 
 async def main(
-    subnet_tag, min_cpu_threads, payment_driver=None, payment_network=None, show_usage=False
+    ctx, subnet_tag, min_cpu_threads, payment_driver=None, payment_network=None, show_usage=False
 ):
-    data_dir = Path("/tmp/gompress_test")
-    target_file = Path("/tmp/to_compress.tar") # todo make an argument
-    max_workers=11
-    ctx = CTX(data_dir, target_file, max_workers)
     list_pending_ids = ctx.list_pending_ids()
     package = await vm.repo(
         image_hash="79d62e635a201f07a243e69c60a7c18338d6a3a6a43b1154277a8a87",
@@ -179,8 +175,14 @@ if __name__ == "__main__":
     parser.set_defaults(log_file=f"gompress-{now}.log")
     args = parser.parse_args()
 
+    data_dir = Path("/tmp/gompress_test")
+    target_file = Path("/tmp/to_compress.tar") # todo make an argument
+    max_workers=11
+    ctx = CTX(data_dir, target_file, max_workers)
+
     run_golem_example(
         main(
+            ctx,
             subnet_tag=args.subnet_tag,
             min_cpu_threads=args.min_cpu_threads,
             payment_driver=args.payment_driver,
@@ -189,3 +191,13 @@ if __name__ == "__main__":
         ),
         log_file=args.log_file,
     )
+
+    # confirm there exists a checksum for every partid
+    # confirm the checksum matches each partid
+    if ctx.verify():
+        print("ALL GOOD")
+    else:
+        print("incomplete")
+
+    # concatenate output files in order of partid
+    ctx.concatenate_and_finalize()
