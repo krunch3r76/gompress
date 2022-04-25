@@ -143,16 +143,17 @@ async def main(
 
     # Worst-case overhead, in minutes, for initialization (negotiation, file transfer etc.)
     # TODO: make this dynamic, e.g. depending on the size of files to transfer
-    init_overhead = 3
+    # init_overhead = 3
     # Providers will not accept work if the timeout is outside of the [5 min, 30min] range.
     # We increase the lower bound to 6 min to account for the time needed for our demand to
     # reach the providers.
-    min_timeout, max_timeout = 6, 30
-    timeout = timedelta(
-        minutes=max(
-            min(init_overhead + len(list_pending_ids) * 2, max_timeout), min_timeout
-        )
-    )
+    # min_timeout, max_timeout = 6, 30
+    # timeout = timedelta(
+    #     minutes=max(
+    #         min(init_overhead + len(list_pending_ids) * 2, max_timeout), min_timeout
+    #     )
+    # )
+    timeout = timedelta(minutes=29)  # todo, make dynamic
 
     if moduleFilterProviderMS:
         strategy = FilterProviderMS()
