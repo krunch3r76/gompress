@@ -12,6 +12,7 @@ import pathlib
 import sys
 from pathlib import Path, PurePosixPath
 from decimal import Decimal
+from lzma import LZMACompressor
 
 from debug.mylogging import g_logger
 import yapapi
@@ -66,7 +67,7 @@ async def main(
     show_usage=False,
 ):
     package = await vm.repo(
-        image_hash="682edc860a5742b800f90b14c85ea88b08e44cccb127ccb5a5f1f13b",
+        image_hash="93d3d6758e127bc68672416341fd38422a37239d3310f3cbc0ca3609",
         # only run on provider nodes that have more than 0.5gb of RAM available
         min_mem_gib=0.5,
         # only run on provider nodes that have more than 2gb of storage space available
@@ -87,15 +88,17 @@ async def main(
             )  # revise to conserve memory
             # resolve to target
             path_to_remote_target = PurePosixPath("/golem/workdir") / f"part_{partId}"
+            lzmaCompressor = LZMACompressor(preset=0)
             script.upload_bytes(
-                view_to_temporary_file.tobytes(), str(path_to_remote_target)
+                lzmaCompressor.compress((view_to_temporary_file.tobytes())),
+                str(path_to_remote_target),
             )
 
             # run script on uploaded target
             future_result = script.run(
                 "/root/xz.sh",
                 str(path_to_remote_target),
-                "-T1",
+                "-T0",
                 f"-{task.mainctx.compression_level}",
             )
             # resolve to processed target
@@ -245,7 +248,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--divisions",
         type=int,
-        default=20,
+        default=10,
         help="Number partitions to distribute for invididual processing; default: %(default)d",
     )
     parser.add_argument(
@@ -254,7 +257,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--compression",
         default="6e",
-        help="compression from 1 fastest to 9 most compressed (optionally postfixed with e for extra cpu time); default: %(default)s",
+        help="compression from 0 fastest to 9 most compressed (optionally postfixed with e for extra cpu time); default: %(default)s",
     )
     # now = datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
     # parser.set_defaults(log_file=f"gompress-{now}.log")

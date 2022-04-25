@@ -3,8 +3,7 @@
 TARGET_FILE="$1"
 EXPECTED_FILE="$1.xz"
 
-ARGS="$TARGET_FILE $ARGS"
-/usr/bin/xz $ARGS
+cat $TARGET_FILE | xz -d --to-stdout | /usr/bin/xz $ARGS >$EXPECTED_FILE
 
 if [[ $? == 0 ]]; then
     echo "OK:$(stat -c %s $EXPECTED_FILE)"
