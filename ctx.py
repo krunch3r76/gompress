@@ -1,4 +1,4 @@
-from workdirectoryinfo import WorkDirectoryInfo, sha1_hash
+from workdirectoryinfo import WorkDirectoryInfo, checksum
 import os
 import sqlite3
 from _create_connection import create_connection
@@ -52,8 +52,8 @@ class CTX:
         read_range = (record[0], record[1])
         self.target_open_file.seek(read_range[0])
         bytesIO = io.BytesIO(self.target_open_file.read(read_range[1]-read_range[0]))
-        return bytesIO.getvalue() 
-        # return bytesIO.getbuffer() # bytesIO is cleaned up only when view is destroyed...
+        # return bytesIO.getvalue() 
+        return bytesIO.getbuffer() # bytesIO is cleaned up only when view is destroyed...
 
     def list_pending_ids(self):
         """return a list or iterable of partIds for which there is no checksum"""
@@ -77,7 +77,7 @@ class CTX:
                 OK = False
                 print(f"part {record[PARTID_FIELD_OFFSET]} NOT FOUND!")
                 break
-            part_hash = sha1_hash(str(path_to_part))
+            part_hash = checksum(path_to_part)
             if part_hash != record[HASH_FIELD_OFFSET]:
                 OK = False
                 print(f"part {record[PARTID_FIELD_OFFSET]} BAD")

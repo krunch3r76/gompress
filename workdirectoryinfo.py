@@ -1,6 +1,8 @@
 from pathlib import Path
 import hashlib
 
+
+# deprecated in favor of using file length
 def sha1_hash(path_to_target):
     sha1 = hashlib.sha1()
     with open(path_to_target, 'rb') as f:
@@ -11,6 +13,15 @@ def sha1_hash(path_to_target):
             sha1.update(data)
     the_hash = sha1.hexdigest()
     return the_hash
+
+def checksum(path_to_target, sha1=False):
+    if not isinstance(path_to_target, Path):
+        path_to_target = Path(path_to_target)
+
+    if not sha1:
+        return str(path_to_target.stat().st_size)
+    else:
+        return sha1_hash(path_to_target)
 
 class WorkDirectoryInfo:
     """
@@ -24,7 +35,7 @@ class WorkDirectoryInfo:
         self.__path_to_wdir_parent = path_to_wdir_parent_in
         self._path_to_target = path_to_target_in
         # hash path_to_target
-        the_hash = sha1_hash(self._path_to_target)
+        the_hash = checksum(self._path_to_target, sha1=True)
         # create abstract path to wdir from hash
         self.__path_to_target_wdir = self.path_to_wdir_parent / the_hash
         # create abstraction of parts directory

@@ -37,13 +37,19 @@ from ctx import CTX
 
 class MyTask(Task):
     """Task extended with reference to context"""
+
     def __init__(self, mainctx, data):
-        self.mainctx=mainctx
+        self.mainctx = mainctx
         super().__init__(data)
 
 
 async def main(
-    ctx, subnet_tag, min_cpu_threads, payment_driver=None, payment_network=None, show_usage=False
+    ctx,
+    subnet_tag,
+    min_cpu_threads,
+    payment_driver=None,
+    payment_network=None,
+    show_usage=False,
 ):
     list_pending_ids = ctx.list_pending_ids()
     package = await vm.repo(
@@ -55,46 +61,47 @@ async def main(
         # only run on provider nodes which a certain number of CPU threads (logical CPU cores) available
         min_cpu_threads=min_cpu_threads,
     )
+
     async def worker(ctx: WorkContext, tasks):
         # Set timeout for the first script executed on the provider
         script = ctx.new_script(timeout=timedelta(minutes=30))
 
         async for task in tasks:
-            partId = task.data # subclassed Task with id attribute
+            partId = task.data  # subclassed Task with id attribute
             # read range and write into temporary file
-            view_to_temporary_file = task.mainctx.view_to_temporary_file(partId) # revise to conserve memory
+            view_to_temporary_file = task.mainctx.view_to_temporary_file(
+                partId
+            )  # revise to conserve memory
             # resolve to target
             path_to_remote_target = PurePosixPath("/golem/workdir") / f"part_{partId}"
-            # upload as resolved target
-            # script.upload_file(str(path_to_temporary_file), str(path_to_remote_target))
+            script.upload_bytes(
+                view_to_temporary_file.tobytes(), str(path_to_remote_target)
+            )
 
-            # write the segment to upload locally
-            path_to_local_segment_file = Path(gettempdir()) / f"part_{partId}"
-            with open(path_to_local_segment_file, "wb") as local_segment_file:
-                local_segment_file.write(view_to_temporary_file)
-
-            script.upload_file(path_to_local_segment_file, path_to_remote_target)
-
-            # script.upload_bytes(view_to_temporary_file, str(path_to_remote_target)) # fails on large files
             # run script on uploaded target
-            future_result = script.run("/root/xz.sh", str(path_to_remote_target), "-T0", f"-{task.mainctx.compression_level}" )
+            future_result = script.run(
+                "/root/xz.sh",
+                str(path_to_remote_target),
+                "-T0",
+                f"-{task.mainctx.compression_level}",
+            )
             # resolve to processed target
             path_to_processed_target = PurePosixPath(str(path_to_remote_target) + ".xz")
-            local_output_file = task.mainctx.work_directory_info.path_to_parts_directory / path_to_processed_target.name
+            local_output_file = (
+                task.mainctx.work_directory_info.path_to_parts_directory
+                / path_to_processed_target.name
+            )
             script.download_file(path_to_processed_target, local_output_file)
             try:
                 yield script
-                path_to_local_segment_file.unlink()
-                # TODO: Check if job results are valid
-                # and reject by: task.reject_task(reason = 'invalid file')
                 result_dict = {}
                 stdout = future_result.result().stdout
                 if not stdout.startswith("OK:"):
                     task.reject_result(retry=True)
                     # this requires testing TODO
                 else:
-                    result_dict['checksum'] = stdout.split(':')[1][:-1]
-                    result_dict['path'] = str(local_output_file.as_posix())
+                    result_dict["checksum"] = stdout.split(":")[1][:-1]
+                    result_dict["path"] = str(local_output_file.as_posix())
                     task.accept_result(result=result_dict)
             except BatchTimeoutError:
                 try:
@@ -130,8 +137,11 @@ async def main(
     # We increase the lower bound to 6 min to account for the time needed for our demand to
     # reach the providers.
     min_timeout, max_timeout = 6, 30
-    timeout = timedelta(minutes=max(min(init_overhead + len(list_pending_ids) * 2, max_timeout), min_timeout))
-
+    timeout = timedelta(
+        minutes=max(
+            min(init_overhead + len(list_pending_ids) * 2, max_timeout), min_timeout
+        )
+    )
 
     async with Golem(
         budget=10.0,
@@ -158,10 +168,20 @@ async def main(
                 f"Task computed: {task}, result: {task.result}, time: {task.running_time}"
                 f"{TEXT_COLOR_DEFAULT}"
             )
-            ctx.con.execute("INSERT INTO Checksum(partId, hash) VALUES (?, ?)",
-                    (task.data, task.result["checksum"],)
-                    )
-            ctx.con.execute("INSERT INTO OutputFile(partId, pathStr) VALUES (?, ?)", (task.data, task.result["path"], ))
+            ctx.con.execute(
+                "INSERT INTO Checksum(partId, hash) VALUES (?, ?)",
+                (
+                    task.data,
+                    task.result["checksum"],
+                ),
+            )
+            ctx.con.execute(
+                "INSERT INTO OutputFile(partId, pathStr) VALUES (?, ?)",
+                (
+                    task.data,
+                    task.result["path"],
+                ),
+            )
             ctx.con.commit()
         print(
             f"{TEXT_COLOR_CYAN}"
@@ -172,28 +192,40 @@ async def main(
 
 if __name__ == "__main__":
     parser = build_parser("compress a file in parallel")
-    parser.add_argument("--show-usage", action="store_true", default=False, help="show activity usage and cost; default: %(default)s")
+    parser.add_argument(
+        "--show-usage",
+        action="store_true",
+        default=False,
+        help="show activity usage and cost; default: %(default)s",
+    )
     parser.add_argument(
         "--min-cpu-threads",
         type=int,
         default=1,
         help="require the provider nodes to have at least this number of available CPU threads",
     )
+    parser.add_argument("--target", help="path to file to compress")
     parser.add_argument(
-            "--target",
-            help="path to file to compress"
-            )
-    parser.add_argument("--divisions", default=20, help="Number partitions to distribute for invididual processing; default: %(default)d")
-    parser.add_argument("--enable_logging", default=True, help="write log files; default: %(default)s")
-    parser.add_argument("--compression", default="6e", help="compression from 1 fastest to 9 most compressed (optionally postfixed with e for extra cpu time); default: %(default)s")
-    #now = datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
-    #parser.set_defaults(log_file=f"gompress-{now}.log")
+        "--divisions",
+        default=20,
+        help="Number partitions to distribute for invididual processing; default: %(default)d",
+    )
+    parser.add_argument(
+        "--enable_logging", default=True, help="write log files; default: %(default)s"
+    )
+    parser.add_argument(
+        "--compression",
+        default="6e",
+        help="compression from 1 fastest to 9 most compressed (optionally postfixed with e for extra cpu time); default: %(default)s",
+    )
+    # now = datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
+    # parser.set_defaults(log_file=f"gompress-{now}.log")
     args = parser.parse_args()
 
     data_dir = Path("./workdir")
     data_dir.mkdir(exist_ok=True)
-    target_file = Path(args.target) # todo make an argument
-    max_workers=args.divisions
+    target_file = Path(args.target)  # todo make an argument
+    max_workers = args.divisions
     ctx = CTX(data_dir, target_file, max_workers, args.compression)
 
     run_golem_example(
