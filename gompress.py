@@ -4,12 +4,17 @@
 # license GPL 3.0
 # skeleton and utils adopted from Golem yapapi's code
 
+MAX_PRICE_CPU_HR = "0.019"
+MAX_PRICE_DUR_HR = "0.0"
+
 from datetime import datetime, timedelta
 import pathlib
 import sys
 from pathlib import Path, PurePosixPath
-from debug.mylogging import g_logger
+from decimal import Decimal
 
+from debug.mylogging import g_logger
+import yapapi
 from yapapi import (
     Golem,
     Task,
@@ -90,7 +95,7 @@ async def main(
             future_result = script.run(
                 "/root/xz.sh",
                 str(path_to_remote_target),
-                "-T0",
+                "-T1",
                 f"-{task.mainctx.compression_level}",
             )
             # resolve to processed target
@@ -155,10 +160,24 @@ async def main(
     # )
     timeout = timedelta(minutes=29)  # todo, make dynamic
 
-    if moduleFilterProviderMS:
-        strategy = FilterProviderMS()
+    # sane defaults for cpu and dur per hr
+    if payment_network == "rinkeby":
+        max_price_for_cpu = Decimal("inf")
+        max_price_for_dur = Decimal("inf")
     else:
-        strategy = None
+        max_price_for_cpu = Decimal(MAX_PRICE_CPU_HR)
+        max_price_for_dur = Decimal(MAX_PRICE_DUR_HR)
+
+    strategy = yapapi.strategy.LeastExpensiveLinearPayuMS(
+        max_fixed_price=Decimal("0.00"),
+        max_price_for={
+            yapapi.props.com.Counter.CPU: max_price_for_cpu / Decimal("3600.0"),
+            yapapi.props.com.Counter.TIME: max_price_for_dur / Decimal("3600.0"),
+        },
+    )
+
+    if moduleFilterProviderMS:
+        strategy = FilterProviderMS(strategy)
 
     async with Golem(
         budget=10.0,
