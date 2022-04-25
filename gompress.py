@@ -254,7 +254,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--compression",
         default="6e",
-        help="compression from 1 fastest to 9 most compressed (optionally postfixed with e for extra cpu time); default: %(default)s",
+        help="compression from 0 fastest to 9 most compressed (optionally postfixed with e for extra cpu time); default: %(default)s",
     )
     # now = datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
     # parser.set_defaults(log_file=f"gompress-{now}.log")
