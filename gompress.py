@@ -35,6 +35,14 @@ from tempfile import gettempdir
 from workdirectoryinfo import WorkDirectoryInfo
 from ctx import CTX
 
+try:
+    moduleFilterProviderMS = False
+    from gc__filterms import FilterProviderMS
+except ModuleNotFoundError:
+    pass
+else:
+    moduleFilterProviderMS = True
+
 
 class MyTask(Task):
     """Task extended with reference to context"""
@@ -146,11 +154,17 @@ async def main(
         )
     )
 
+    if moduleFilterProviderMS:
+        strategy = FilterProviderMS()
+    else:
+        strategy = None
+
     async with Golem(
         budget=10.0,
         subnet_tag=subnet_tag,
         payment_driver=payment_driver,
         payment_network=payment_network,
+        strategy=strategy,
     ) as golem:
         print_env_info(golem)
 
