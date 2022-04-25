@@ -95,7 +95,7 @@ async def main(
             future_result = script.run(
                 "/root/xz.sh",
                 str(path_to_remote_target),
-                "-T1",
+                "-T0",
                 f"-{task.mainctx.compression_level}",
             )
             # resolve to processed target
