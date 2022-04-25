@@ -47,7 +47,7 @@ async def main(
 ):
     list_pending_ids = ctx.list_pending_ids()
     package = await vm.repo(
-        image_hash="79d62e635a201f07a243e69c60a7c18338d6a3a6a43b1154277a8a87",
+        image_hash="682edc860a5742b800f90b14c85ea88b08e44cccb127ccb5a5f1f13b",
         # only run on provider nodes that have more than 0.5gb of RAM available
         min_mem_gib=0.5,
         # only run on provider nodes that have more than 2gb of storage space available
