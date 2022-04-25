@@ -5,7 +5,7 @@ import hashlib
 # deprecated in favor of using file length
 def sha1_hash(path_to_target):
     sha1 = hashlib.sha1()
-    with open(path_to_target, 'rb') as f:
+    with open(path_to_target, "rb") as f:
         while True:
             data = f.read(4096)
             if not data:
@@ -13,6 +13,7 @@ def sha1_hash(path_to_target):
             sha1.update(data)
     the_hash = sha1.hexdigest()
     return the_hash
+
 
 def checksum(path_to_target, sha1=False):
     if not isinstance(path_to_target, Path):
@@ -23,15 +24,17 @@ def checksum(path_to_target, sha1=False):
     else:
         return sha1_hash(path_to_target)
 
+
 class WorkDirectoryInfo:
     """
-        / path_to_wdir_parent           .../
-        / path_to_target_wdir           ..././<hash>/
-        / path_to_parts_directory       ..././<hash>/parts
-        / path_to_final_directory       ..././<hash>/final
+    / path_to_wdir_parent           .../
+    / path_to_target_wdir           ..././<hash>/
+    / path_to_parts_directory       ..././<hash>/parts
+    / path_to_final_directory       ..././<hash>/final
     """
+
     def __init__(self, path_to_wdir_parent_in, path_to_target_in):
-        """ hash path_to_target to create path_to_wdir under parent """
+        """hash path_to_target to create path_to_wdir under parent"""
         self.__path_to_wdir_parent = path_to_wdir_parent_in
         self._path_to_target = path_to_target_in
         # hash path_to_target
@@ -48,7 +51,7 @@ class WorkDirectoryInfo:
         return self.__path_to_wdir_parent
 
     @property
-    def path_to_target_wdir(self): # contains db file
+    def path_to_target_wdir(self):  # contains db file
         return self.__path_to_target_wdir
 
     @property
