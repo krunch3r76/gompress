@@ -1,5 +1,5 @@
 import sqlite3
-
+from debug.mylogging import g_logger
 
 def _partition(total, maxcount):
     """return an array of n tuples of start and end lengths measuring length evenly n-1 times"""
@@ -48,6 +48,7 @@ def _populate_connection(con, target_length, workDirectoryInfo, part_count):
 def create_connection(path_to_connection_file, path_to_target, workDirectoryInfo,
         part_count):
     """create a new database and return the connection"""
+    # part_count = int(part_count) # kludge, should be guaranteed as pre
     workDirectoryInfo.create_skeleton()
 
     con = sqlite3.connect(str(path_to_connection_file), isolation_level=None)

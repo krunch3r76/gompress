@@ -4,6 +4,7 @@ import sqlite3
 from _create_connection import create_connection
 import io
 from pathlib import Path
+from debug.mylogging import g_logger
 
 class CTX:
     """
@@ -42,7 +43,7 @@ class CTX:
             # TODO: check for completeness
         else:
             # create connection
-            print("creating connection")
+            g_logger.debug("creating connection")
             self.con = create_connection(self.path_to_connection_file, self.path_to_target,
                     self.work_directory_info, self.part_count)
 

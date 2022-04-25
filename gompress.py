@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 import pathlib
 import sys
 from pathlib import Path, PurePosixPath
+from debug.mylogging import g_logger
 
 from yapapi import (
     Golem,
@@ -207,6 +208,7 @@ if __name__ == "__main__":
     parser.add_argument("--target", help="path to file to compress")
     parser.add_argument(
         "--divisions",
+        type=int,
         default=20,
         help="Number partitions to distribute for invididual processing; default: %(default)d",
     )
