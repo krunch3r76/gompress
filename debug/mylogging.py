@@ -1,5 +1,6 @@
 import logging, sys, os
 
+
 def _generate_local_logger(env_level=None):
     import logging, sys, os
 
@@ -14,7 +15,7 @@ def _generate_local_logger(env_level=None):
     g_logger = logging.getLogger(__name__)
     _stream_handler = logging.StreamHandler(sys.stderr)
     _formatter = logging.Formatter(
-        "\033[1m%(levelname)s\033[0m:%(name)s:%(lineno)d:%(message)s"
+        "\033[1m%(levelname)s\033[0m:%(filename)s:%(lineno)d:%(message)s"
     )
     _stream_handler.setFormatter(_formatter)
     g_logger.addHandler(_stream_handler)
@@ -24,4 +25,3 @@ def _generate_local_logger(env_level=None):
 
 
 g_logger = _generate_local_logger()
-

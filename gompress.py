@@ -52,7 +52,6 @@ async def main(
     payment_network=None,
     show_usage=False,
 ):
-    list_pending_ids = ctx.list_pending_ids()
     package = await vm.repo(
         image_hash="682edc860a5742b800f90b14c85ea88b08e44cccb127ccb5a5f1f13b",
         # only run on provider nodes that have more than 0.5gb of RAM available
@@ -130,6 +129,9 @@ async def main(
                     f" --- {ctx.provider_name}  COST: {cost}"
                     f"{TEXT_COLOR_DEFAULT}"
                 )
+
+    list_pending_ids = ctx.list_pending_ids()
+    g_logger.debug(f"There are {len(list_pending_ids)} remaining partitions to work on")
 
     # Worst-case overhead, in minutes, for initialization (negotiation, file transfer etc.)
     # TODO: make this dynamic, e.g. depending on the size of files to transfer
@@ -245,10 +247,8 @@ if __name__ == "__main__":
     # confirm there exists a checksum for every partid
     # confirm the checksum matches each partid
     if ctx.verify():
-        print("ALL GOOD")
+        # concatenate output files in order of partid
+        ctx.concatenate_and_finalize()
         print(f"The compressed file is located at: {ctx.path_to_final_target}")
     else:
         print("incomplete")
-
-    # concatenate output files in order of partid
-    ctx.concatenate_and_finalize()

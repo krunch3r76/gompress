@@ -1,6 +1,6 @@
 from pathlib import Path
 import hashlib
-
+from debug.mylogging import g_logger
 
 # deprecated in favor of using file length
 def sha1_hash(path_to_target):
@@ -40,6 +40,7 @@ class WorkDirectoryInfo:
         # hash path_to_target
         the_hash = checksum(self._path_to_target, sha1=True)
         # create abstract path to wdir from hash
+        wdirname = the_hash
         self.__path_to_target_wdir = self.path_to_wdir_parent / the_hash
         # create abstraction of parts directory
         self.__path_to_parts_directory = self.path_to_target_wdir / "parts"

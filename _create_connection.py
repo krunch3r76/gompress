@@ -1,6 +1,7 @@
 import sqlite3
 from debug.mylogging import g_logger
 
+
 def _partition(total, maxcount):
     """return an array of n tuples of start and end lengths measuring length evenly n-1 times"""
     if total == 1:
@@ -24,29 +25,40 @@ def _partition(total, maxcount):
     rv.append(minimum + extra)
     return rv
 
+
 def _partitionRanges(target_length, part_count):
     lengths = _partition(target_length, part_count)
-    ranges = [(0, lengths.pop(0), )]
+    ranges = [
+        (
+            0,
+            lengths.pop(0),
+        )
+    ]
     # lengths.pop(0)
     for i, length in enumerate(lengths):
-        next_range = ( ranges[i][1], ranges[i][1]+length )
+        next_range = (ranges[i][1], ranges[i][1] + length)
         ranges.append(next_range)
     return ranges
+
 
 def _populate_connection(con, target_length, workDirectoryInfo, part_count):
     """build meta details and add to database"""
     con.execute(
         """
             INSERT INTO OriginalFile(file_hash, part_count) VALUES (?,?)""",
-        (workDirectoryInfo.path_to_target_wdir.name,
-        part_count, )
+        (
+            workDirectoryInfo.path_to_target_wdir.name,
+            part_count,
+        ),
     )
 
     ranges = _partitionRanges(target_length, part_count)
     con.executemany("INSERT INTO Part(start, end) VALUES (?,?)", ranges)
 
-def create_connection(path_to_connection_file, path_to_target, workDirectoryInfo,
-        part_count):
+
+def create_connection(
+    path_to_connection_file, path_to_target, workDirectoryInfo, part_count
+):
     """create a new database and return the connection"""
     # part_count = int(part_count) # kludge, should be guaranteed as pre
     workDirectoryInfo.create_skeleton()
