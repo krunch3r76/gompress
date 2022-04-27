@@ -22,9 +22,10 @@ the partitions ranges are tabulated as well as all intermediate work along with 
 # USAGE AND TIPS
 
 ## ask gompress to perform light local compression first to save on file transfer (xfer) time significantly via --xfer-compression-level
-20 divisions with at least 20 cores would be appropriate for a large file e.g. +400mb on mainnet
+20 divisions with at least 20 cores would be appropriate for a large file e.g. +400mb on mainnet. note that the work is divided additionally by the min-cpu-threads...
+
 ```bash
-$ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta --target myfile.raw --divisions 20 --compression=9e --xfer-compression-level 3 --min-cpu-threads 20
+$ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta --target myfile.raw --divisions 20 --compression=9e --xfer-compression-level 1 --min-cpu-threads 20
 ```
 
 ## adjust the maximum number of workers by changing the number of divisions:
@@ -50,7 +51,7 @@ $ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta --t
 ## comments
 testnet nodes are not high caliber. to get extreme compression on extreme sizes consider being selective of high performance nodes on the mainnet. you may find such nodes via my gc__listoffers application [1]. you may also incorporate my gc__filterms by cloning it or linking from it from the project root directory [2].
 
-expect gompress to evolve with golem and to become more performant accordingly e.g. with improved networking
+expect gompress to evolve with golem and to become more performant accordingly e.g. with improved networking. gompress is continually being optimized within current parameters however. stay tuned.
 
 ## todo
 project memory requirements to better anticipate node requirements.
