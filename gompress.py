@@ -91,9 +91,17 @@ async def main(
                 path_to_remote_target = (
                     PurePosixPath("/golem/workdir") / f"part_{partId}.xz"
                 )
-                lzmaCompressor = LZMACompressor(preset=0)
+                lzmaCompressor = LZMACompressor(
+                    preset=task.mainctx.precompression_level
+                )
+                compressed_intermediate = lzmaCompressor.compress(
+                    view_to_temporary_file.tobytes()
+                )
+                compressed_intermediate = (
+                    compressed_intermediate + lzmaCompressor.flush()
+                )  # upload_bytes does not play well with lzmaCompressor (does not flush), so ...
                 script.upload_bytes(
-                    lzmaCompressor.compress((view_to_temporary_file.tobytes())),
+                    compressed_intermediate,
                     path_to_remote_target,
                 )
             else:
