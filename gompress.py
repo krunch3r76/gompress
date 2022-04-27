@@ -264,8 +264,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--min-cpu-threads",
         type=int,
-        default=0,
-        help="require the provider nodes to have at least this number of available CPU threads",
+        default=1,
+        help="require the provider nodes to have at least this number of available CPU threads (default 1 to use 1 core, set to 0 to use all cores 1+)",
     )
     parser.add_argument("--target", help="path to file to compress")
     parser.add_argument(
