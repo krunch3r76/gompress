@@ -67,7 +67,8 @@ async def main(
     show_usage=False,
 ):
     package = await vm.repo(
-        image_hash="5955d4f1a18eed6b90687c377156d20423466deeaa51962e8bb91292",
+        # image_hash="5955d4f1a18eed6b90687c377156d20423466deeaa51962e8bb91292",
+        image_hash="b3d41027d167839ed38604db7b82d566d91661feb88eaa3f65799904",
         # only run on provider nodes that have more than 0.5gb of RAM available
         min_mem_gib=0.5,
         # only run on provider nodes that have more than 2gb of storage space available
@@ -87,10 +88,10 @@ async def main(
                 partId
             )  # revise to conserve memory
             # resolve to target
+            remote_name = None
             if task.mainctx.precompression_level >= 0:
-                path_to_remote_target = (
-                    PurePosixPath("/golem/workdir") / f"part_{partId}.xz"
-                )
+                remote_name = f"part_{partId}.xz"
+                path_to_remote_target = PurePosixPath("/golem/workdir") / remote_name
                 lzmaCompressor = LZMACompressor(
                     preset=task.mainctx.precompression_level
                 )
@@ -105,12 +106,15 @@ async def main(
                     path_to_remote_target,
                 )
             else:
-                path_to_remote_target = (
-                    PurePosixPath("/golem/workdir") / f"part_{partId}"
-                )
+                remote_name = f"part_{partId}"
+                path_to_remote_target = PurePosixPath("/golem/workdir") / remote_name
                 script.upload_bytes(
                     view_to_temporary_file.tobytes(), path_to_remote_target
                 )
+
+            script.run("/bin/mkdir", "-p", "/dev/shm/work/in")
+            script.run("/bin/mv", str(path_to_remote_target), "/dev/shm/work/in")
+            script.run("/bin/ln", "-s", f"/dev/shm/work/in/{remote_name}")
 
             # run script on uploaded target
             future_result = script.run(
