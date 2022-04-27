@@ -12,6 +12,7 @@ import pathlib
 import sys
 from pathlib import Path, PurePosixPath
 from decimal import Decimal
+from lzma import LZMACompressor
 
 from debug.mylogging import g_logger
 import yapapi
@@ -66,7 +67,7 @@ async def main(
     show_usage=False,
 ):
     package = await vm.repo(
-        image_hash="682edc860a5742b800f90b14c85ea88b08e44cccb127ccb5a5f1f13b",
+        image_hash="5955d4f1a18eed6b90687c377156d20423466deeaa51962e8bb91292",
         # only run on provider nodes that have more than 0.5gb of RAM available
         min_mem_gib=0.5,
         # only run on provider nodes that have more than 2gb of storage space available
@@ -86,20 +87,33 @@ async def main(
                 partId
             )  # revise to conserve memory
             # resolve to target
-            path_to_remote_target = PurePosixPath("/golem/workdir") / f"part_{partId}"
-            script.upload_bytes(
-                view_to_temporary_file.tobytes(), str(path_to_remote_target)
-            )
+            if task.mainctx.precompression_level >= 0:
+                path_to_remote_target = (
+                    PurePosixPath("/golem/workdir") / f"part_{partId}.xz"
+                )
+                lzmaCompressor = LZMACompressor(preset=0)
+                script.upload_bytes(
+                    lzmaCompressor.compress((view_to_temporary_file.tobytes())),
+                    path_to_remote_target,
+                )
+            else:
+                path_to_remote_target = (
+                    PurePosixPath("/golem/workdir") / f"part_{partId}"
+                )
+                script.upload_bytes(
+                    view_to_temporary_file.tobytes(), path_to_remote_target
+                )
 
             # run script on uploaded target
             future_result = script.run(
                 "/root/xz.sh",
-                str(path_to_remote_target),
+                path_to_remote_target.name,  # shell script is run from workdir, expects
+                # filename is local to workdir
                 "-T0",
                 f"-{task.mainctx.compression_level}",
-            )
+            )  # output is stored by same name
             # resolve to processed target
-            path_to_processed_target = PurePosixPath(str(path_to_remote_target) + ".xz")
+            path_to_processed_target = PurePosixPath(f"/golem/output/part_{partId}.xz")
             local_output_file = (
                 task.mainctx.work_directory_info.path_to_parts_directory
                 / path_to_processed_target.name
@@ -245,7 +259,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--divisions",
         type=int,
-        default=20,
+        default=10,
         help="Number partitions to distribute for invididual processing; default: %(default)d",
     )
     parser.add_argument(
@@ -254,7 +268,15 @@ if __name__ == "__main__":
     parser.add_argument(
         "--compression",
         default="6e",
-        help="compression from 0 fastest to 9 most compressed (optionally postfixed with e for extra cpu time); default: %(default)s",
+        help="compression from 0 fastest to 9 most compressed (optionally postfixed with"
+        " e for extra cpu time); default: %(default)s",
+    )
+    parser.add_argument(
+        "--xfer-compression-level",
+        type=int,
+        default="-1",
+        help="compression from 0 to 9 locally before uploading to nodes (must be less than"
+        " --compresssion), negative value implies no pre-compression (default)",
     )
     # now = datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
     # parser.set_defaults(log_file=f"gompress-{now}.log")
@@ -264,7 +286,13 @@ if __name__ == "__main__":
     data_dir.mkdir(exist_ok=True)
     target_file = Path(args.target)  # todo make an argument
     max_workers = args.divisions
-    ctx = CTX(data_dir, target_file, max_workers, args.compression)
+    ctx = CTX(
+        data_dir,
+        target_file,
+        max_workers,
+        args.compression,
+        args.xfer_compression_level,
+    )
 
     run_golem_example(
         main(
