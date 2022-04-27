@@ -52,7 +52,7 @@ testnet nodes are not high caliber. to get extreme compression on extreme sizes 
 
 expect gompress to evolve with golem and to become more performant accordingly e.g. with improved networking. gompress is continually being optimized within current parameters however. stay tuned.
 
-the default min-cpu-threads argument is set to 0 which will parallelize compression of each task across all threads on the worker node. i recommend one focus on the --divisions argument and if targeting higher end nodes to use gc__filterms.
+the default min-cpu-threads argument is treated specially by gompress and is set to 0 by default: which will parallelize compression of each task across all threads on any worker node. i recommend one focus on the --divisions argument and if targeting higher end nodes to use gc__filterms before tweaking min-cpu-threads.
 
 ## todo
 project memory requirements to better anticipate node requirements.
