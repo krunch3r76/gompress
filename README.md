@@ -12,7 +12,14 @@ gompress partitions/divides a file into separate parts sending them to golem nod
 
 the partitions ranges are tabulated as well as all intermediate work along with checksums. this enables resuming a compression later, as when network conditions or prices may be more favorable.
 
-# USAGE
+# USAGE AND TIPS
+
+## ask gompress to perform light local compression first to save on file transfer (xfer) time significantly via --xfer-compression-level
+20 divisions would be appropriate for a large file e.g. +400mb
+```bash
+$ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta --target myfile.raw --divisions 20 --compression=9e --xfer-compression-level 3 --min-cpu-threads 20
+```
+
 ## adjust the maximum number of workers by changing the number of divisions:
 ```bash
 $ python3 gompress.py --target myfile.raw --divisions 5
@@ -22,6 +29,7 @@ $ python3 gompress.py --target myfile.raw --divisions 5
 ```bash
 $ python3 gompress.py --target myfile.raw --compression 9e
 ```
+
 
 ## comments
 testnet nodes are not high caliber. to get extreme compression on extreme sizes consider being selective of high performance nodes on the mainnet. you may find such nodes via my gc__listoffers application [1]. you may also incorporate my gc__filterms (will be added to this later) [2].
