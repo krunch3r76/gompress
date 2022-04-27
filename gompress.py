@@ -67,7 +67,7 @@ async def main(
     show_usage=False,
 ):
     package = await vm.repo(
-        image_hash="5af147dc63fa9b3b43bb9339c0ccadefd8adbb4534e6d717e1a08b53",
+        image_hash="5955d4f1a18eed6b90687c377156d20423466deeaa51962e8bb91292",
         # only run on provider nodes that have more than 0.5gb of RAM available
         min_mem_gib=0.5,
         # only run on provider nodes that have more than 2gb of storage space available
@@ -89,34 +89,31 @@ async def main(
             # resolve to target
             if task.mainctx.precompression_level >= 0:
                 path_to_remote_target = (
-                    PurePosixPath("/golem/workdir")
-                    / f"part_{partId}.xz"
-                    # f"part_{partId}.xz"
+                    PurePosixPath("/golem/workdir") / f"part_{partId}.xz"
                 )
                 lzmaCompressor = LZMACompressor(preset=0)
                 script.upload_bytes(
                     lzmaCompressor.compress((view_to_temporary_file.tobytes())),
-                    path_to_remote_target.name,
+                    path_to_remote_target,
                 )
             else:
                 path_to_remote_target = (
-                    PurePosixPath("/golem/workdir")
-                    / f"part_{partId}"
-                    # f"part_{partId}"
+                    PurePosixPath("/golem/workdir") / f"part_{partId}"
                 )
                 script.upload_bytes(
-                    view_to_temporary_file.tobytes(), path_to_remote_target.name
+                    view_to_temporary_file.tobytes(), path_to_remote_target
                 )
 
             # run script on uploaded target
             future_result = script.run(
                 "/root/xz.sh",
-                str(path_to_remote_target),
+                path_to_remote_target.name,  # shell script is run from workdir, expects
+                # filename is local to workdir
                 "-T0",
                 f"-{task.mainctx.compression_level}",
-            )
+            )  # output is stored by same name
             # resolve to processed target
-            path_to_processed_target = PurePosixPath(str(path_to_remote_target) + ".xz")
+            path_to_processed_target = PurePosixPath(f"/golem/output/part_{partId}.xz")
             local_output_file = (
                 task.mainctx.work_directory_info.path_to_parts_directory
                 / path_to_processed_target.name
