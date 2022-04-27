@@ -22,7 +22,7 @@ the partitions ranges are tabulated as well as all intermediate work along with 
 # USAGE AND TIPS
 
 ## ask gompress to perform light local compression first to save on file transfer (xfer) time significantly via --xfer-compression-level
-20 divisions with at least 20 cores would be appropriate for a large file e.g. +400mb on mainnet. note that the work is divided additionally by the min-cpu-threads...
+10 divisions with at least 20 cores may be appropriate for a large file e.g. +800mb on mainnet. note that the work is divided additionally by the min-cpu-threads (effectively 200 divisions wrt to pattern discovery by xz)...
 
 ```bash
 $ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta --target myfile.raw --divisions 20 --compression=9e --xfer-compression-level 1 --min-cpu-threads 20
@@ -45,7 +45,7 @@ since work is more or less evenly divided, gompress log messages with respect to
 ```bash
 $ export GNPROVIDER_BL=fascinated-system
 $ export FILTERMSVERBOSE=1
-$ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta --target myfilelarge.raw --divisions 20 --compression=9e --xfer-compression-level 3 --min-cpu-threads 128
+$ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta --target myfilelarge.raw --divisions 10 --compression=9e --xfer-compression-level 1 --min-cpu-threads 32
 ```
 
 ## comments
