@@ -3,6 +3,13 @@ compress a file over distributed golem nodes
 
 data is getting big. fortunately, this means more time on the clock waiting for the data to be prepared for sharing with colleagues around the world and getting paid while dreaming of an escape to a tropical island. besides this problem, gompress solves the compression problem of needing to divide the work of the xz compression algorithm to more cores than would normally be possible (i.e. an unlimited number of cores limited only by aggregate number of threads on the golem network).
 
+# requirements
+- yapapi 0.9.1
+- a golem requestor installation with yagna client running and app-key exported etc
+- python 3.8-3.9
+
+tested on linux and windows. expected to work cross platform.
+
 # video demo
 
 https://user-images.githubusercontent.com/46289600/164893401-08b878db-b068-4925-bb3d-49a0b099cc28.mp4
@@ -30,9 +37,18 @@ $ python3 gompress.py --target myfile.raw --divisions 5
 $ python3 gompress.py --target myfile.raw --compression 9e
 ```
 
+## clone gc__filterms into the project root directory
+### it just works -- use the environment variables
+```bash
+$ export GNPROVIDER_BL=fascinated-system
+$ export FILTERMSVERBOSE=1
+$ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta --target myfilelarge.raw --divisions 20 --compression=9e --xfer-compression-level 3 --min-cpu-threads 128
+```
 
 ## comments
-testnet nodes are not high caliber. to get extreme compression on extreme sizes consider being selective of high performance nodes on the mainnet. you may find such nodes via my gc__listoffers application [1]. you may also incorporate my gc__filterms (will be added to this later) [2].
+testnet nodes are not high caliber. to get extreme compression on extreme sizes consider being selective of high performance nodes on the mainnet. you may find such nodes via my gc__listoffers application [1]. you may also incorporate my gc__filterms by cloning it or linking from it from the project root directory [2].
+
+expect gompress to evolve with golem and to become more performant accordingly e.g. with improved networking
 
 ## todo
 project memory requirements to better anticipate node requirements.
