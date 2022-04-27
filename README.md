@@ -22,10 +22,9 @@ the partitions ranges are tabulated as well as all intermediate work along with 
 # USAGE AND TIPS
 
 ## ask gompress to perform light local compression first to save on file transfer (xfer) time significantly via --xfer-compression-level
-10 divisions with at least 20 cores may be appropriate for a large file e.g. +400mb on mainnet. note that the work is divided additionally by the min-cpu-threads (effectively 200 divisions wrt to pattern discovery by xz)... more on this later but the takeaway for now is that setting min-cpu-threads higher may not be the most effective strategy.
 
 ```bash
-$ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta --target myfile.raw --divisions 10 --compression=9e --xfer-compression-level 1 --min-cpu-threads 20
+$ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta --target myfile.raw --divisions 10 --compression=9e --xfer-compression-level 1
 ```
 
 ## adjust the maximum number of workers by changing the number of divisions:
@@ -45,13 +44,15 @@ since work is more or less evenly divided, gompress log messages with respect to
 ```bash
 $ export GNPROVIDER_BL=fascinated-system
 $ export FILTERMSVERBOSE=1
-$ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta --target myfilelarge.raw --divisions 10 --compression=9e --xfer-compression-level 1 --min-cpu-threads 32
+$ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta --target myfilelarge.raw --divisions 10 --compression=9e --xfer-compression-level 1
 ```
 
 ## comments
 testnet nodes are not high caliber. to get extreme compression on extreme sizes consider being selective of high performance nodes on the mainnet. you may find such nodes via my gc__listoffers application [1]. you may also incorporate my gc__filterms by cloning it or linking from it from the project root directory [2].
 
 expect gompress to evolve with golem and to become more performant accordingly e.g. with improved networking. gompress is continually being optimized within current parameters however. stay tuned.
+
+the default min-cpu-threads argument is set to 0 which will parallelize compression of each task across all threads on the worker node. i recommend one focus on the --divisions argument and if targeting higher end nodes to use gc__filterms.
 
 ## todo
 project memory requirements to better anticipate node requirements.
