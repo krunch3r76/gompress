@@ -37,7 +37,7 @@ $ python3 gompress.py --target myfile.raw --divisions 5
 $ python3 gompress.py --target myfile.raw --compression 9e
 ```
 ## use gompress as a benchmark
-since work is more or less evenly divided, gompress log messages with respect to time is indicative of relative performance. make note of the fastest nodes and use them for future work e.g. with gc__filterms. currently, the best way to do this is normalize against the checksum, which is simply the length of the output file expected from each node.
+since work is more or less evenly divided, gompress log messages with respect to time is indicative of relative performance. make note of the fastest nodes and use them for future work e.g. with gc__filterms. currently, the best way to do this is normalize against the checksum, which is simply the length of the output file expected from each node. group by the task data value to map timing to a specific node name.
 
 ## clone gc__filterms into the project root directory
 ### it just works -- use the environment variables
