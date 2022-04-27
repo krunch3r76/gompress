@@ -36,6 +36,8 @@ $ python3 gompress.py --target myfile.raw --divisions 5
 ```bash
 $ python3 gompress.py --target myfile.raw --compression 9e
 ```
+## use gompress as a benchmark
+since work is more or less evenly divided, gompress log messages with respect to time is indicative of relative performance. make note of the fastest nodes and use them for future work e.g. with gc__filterms
 
 ## clone gc__filterms into the project root directory
 ### it just works -- use the environment variables
