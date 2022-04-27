@@ -67,7 +67,7 @@ async def main(
     show_usage=False,
 ):
     package = await vm.repo(
-        image_hash="93d3d6758e127bc68672416341fd38422a37239d3310f3cbc0ca3609",
+        image_hash="5af147dc63fa9b3b43bb9339c0ccadefd8adbb4534e6d717e1a08b53",
         # only run on provider nodes that have more than 0.5gb of RAM available
         min_mem_gib=0.5,
         # only run on provider nodes that have more than 2gb of storage space available
@@ -87,12 +87,26 @@ async def main(
                 partId
             )  # revise to conserve memory
             # resolve to target
-            path_to_remote_target = PurePosixPath("/golem/workdir") / f"part_{partId}"
-            lzmaCompressor = LZMACompressor(preset=0)
-            script.upload_bytes(
-                lzmaCompressor.compress((view_to_temporary_file.tobytes())),
-                str(path_to_remote_target),
-            )
+            if task.mainctx.precompression_level >= 0:
+                path_to_remote_target = (
+                    PurePosixPath("/golem/workdir")
+                    / f"part_{partId}.xz"
+                    # f"part_{partId}.xz"
+                )
+                lzmaCompressor = LZMACompressor(preset=0)
+                script.upload_bytes(
+                    lzmaCompressor.compress((view_to_temporary_file.tobytes())),
+                    path_to_remote_target.name,
+                )
+            else:
+                path_to_remote_target = (
+                    PurePosixPath("/golem/workdir")
+                    / f"part_{partId}"
+                    # f"part_{partId}"
+                )
+                script.upload_bytes(
+                    view_to_temporary_file.tobytes(), path_to_remote_target.name
+                )
 
             # run script on uploaded target
             future_result = script.run(
@@ -257,7 +271,15 @@ if __name__ == "__main__":
     parser.add_argument(
         "--compression",
         default="6e",
-        help="compression from 0 fastest to 9 most compressed (optionally postfixed with e for extra cpu time); default: %(default)s",
+        help="compression from 0 fastest to 9 most compressed (optionally postfixed with"
+        " e for extra cpu time); default: %(default)s",
+    )
+    parser.add_argument(
+        "--xfer-compression-level",
+        type=int,
+        default="-1",
+        help="compression from 0 to 9 locally before uploading to nodes (must be less than"
+        " --compresssion), negative value implies no pre-compression (default)",
     )
     # now = datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
     # parser.set_defaults(log_file=f"gompress-{now}.log")
@@ -267,7 +289,13 @@ if __name__ == "__main__":
     data_dir.mkdir(exist_ok=True)
     target_file = Path(args.target)  # todo make an argument
     max_workers = args.divisions
-    ctx = CTX(data_dir, target_file, max_workers, args.compression)
+    ctx = CTX(
+        data_dir,
+        target_file,
+        max_workers,
+        args.compression,
+        args.xfer_compression_level,
+    )
 
     run_golem_example(
         main(
