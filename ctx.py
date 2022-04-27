@@ -28,8 +28,10 @@ class CTX:
         part_count_in,
         compression_level_in,
         precompression_level_in,
+        min_threads_in,
     ):
         """create/connect to a db relevant to inputs"""
+        self.min_threads = min_threads_in
         self.precompression_level = precompression_level_in
         self.compression_level = compression_level_in
         self.path_to_target = path_to_target_in

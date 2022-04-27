@@ -117,7 +117,7 @@ async def main(
                 "/root/xz.sh",
                 path_to_remote_target.name,  # shell script is run from workdir, expects
                 # filename is local to workdir
-                "-T0",
+                f"-T{task.mainctx.min_threads}",
                 f"-{task.mainctx.compression_level}",
             )  # output is stored by same name
             # resolve to processed target
@@ -260,7 +260,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--min-cpu-threads",
         type=int,
-        default=1,
+        default=0,
         help="require the provider nodes to have at least this number of available CPU threads",
     )
     parser.add_argument("--target", help="path to file to compress")
@@ -300,6 +300,7 @@ if __name__ == "__main__":
         max_workers,
         args.compression,
         args.xfer_compression_level,
+        args.min_cpu_threads,
     )
 
     run_golem_example(
