@@ -17,7 +17,7 @@ def _partition(total, maxcount):
         count -= 1
         minimum = int(total / count)
 
-    extra = total % count
+    extra = int(total % count)
 
     rv = []
     for _ in range(count - 1):

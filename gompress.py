@@ -183,6 +183,7 @@ async def main(
     timeout = timedelta(minutes=29)  # todo, make dynamic
 
     # sane defaults for cpu and dur per hr
+    print(payment_network)
     if payment_network == "rinkeby":
         max_price_for_cpu = Decimal("inf")
         max_price_for_dur = Decimal("inf")

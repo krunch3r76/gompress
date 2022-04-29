@@ -39,12 +39,16 @@ def build_parser(description: str) -> argparse.ArgumentParser:
 
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument(
-        "--payment-driver", "--driver", help="Payment driver name, for example `erc20`"
+        "--payment-driver",
+        "--driver",
+        default="erc20",
+        help="Payment driver name, default: %(default)s",
     )
     parser.add_argument(
         "--payment-network",
         "--network",
-        help="Payment network name, for example `rinkeby`",
+        default="rinkeby",
+        help="Payment network name, default: %(default)s",
     )
     parser.add_argument("--subnet-tag", help="Subnet name, for example `devnet-beta`")
     parser.add_argument(
