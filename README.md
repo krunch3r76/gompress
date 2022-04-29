@@ -31,7 +31,7 @@ https://user-images.githubusercontent.com/46289600/164893401-08b878db-b068-4925-
 **note**: xz is free for windows, download directly or visit root website at: https://tukaani.org/xz/xz-5.2.5-windows.zip
 
 # MOA
-gompress partitions/divides a file into --divisions argument number of separate parts, sending them to --divisions count golem nodes, where xz is invoked to compress the partitions using the maximum number of cores available. it is parallelism on two levels: one, the order in which nodes finish is not determined, and two, all cores are used on each node in parallel. the parts are asynchronously retrieved and stitched together into a cohesive whole that can be decompressed via xz.
+gompress partitions/divides a file into --divisions (or default) argument number of separate parts, sending them to --divisions count golem nodes, where xz is invoked to compress the partitions using the maximum number of cores available. it is parallelism on two levels: one, parts or divisions are distributed to different nodes to be worked on, and two, all cores are used on each node in to compress in parallel. the parts are asynchronously retrieved and stitched together into a cohesive whole that can be decompressed via xz.
 
 the partitions ranges are tabulated as well as all intermediate work along with checksums. *this enables resuming a compression later*, as when network conditions or prices may be more favorable. **TRY IT by ctrl-c midway and resume**
 
@@ -55,7 +55,7 @@ $ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta --t
 since work is more or less evenly divided, gompress log messages with respect to time is indicative of relative performance. make note of the fastest nodes and use them for future work e.g. with gc__filterms. currently, the best way to do this is normalize against the checksum, which is simply the length of the output file expected from each node. group by the task data value to map timing to a specific node name.
 
 ## clone gc__filterms into the project root directory
-### it just works -- use the environment variables. select a single node (or few) with many cores and set --divisions 1 (or few count)
+### it just works -- use the environment variables. tip: select a single node (or few) with many cores and set --divisions 1 e.g.
 ```bash
 $ export GNPROVIDER_BL=fascinated-system
 $ export FILTERMSVERBOSE=1
