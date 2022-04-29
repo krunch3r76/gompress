@@ -14,6 +14,16 @@ tested on linux and windows. expected to work cross platform.
 
 https://user-images.githubusercontent.com/46289600/164893401-08b878db-b068-4925-bb3d-49a0b099cc28.mp4
 
+# self demo
+```bash
+(gompress) $ wget http://aleph.gutenberg.org/ls-lR
+(gompress) $ md5sum ls-lR # note this for later
+(gompress) $ python3.9 gompress.py --target ls-lR
+(gompress) $ cd workdir/hashvaluefromoutput/final
+(gompress final) $ xz -d ls-lR.xz
+(gompress final) $ md5sum ls-lR # compare with earlier
+```
+
 # MOA
 gompress partitions/divides a file into separate parts sending them to golem nodes, where xz is invoked to compress the partitions using the maximum number of cores available. it is parallelism on two levels: one, the order in which nodes finish is not determined, and two, all cores are used on each node in parallel. the parts are asynchronously retrieved and stitched together into a cohesive whole that can be decompressed via xz.
 
