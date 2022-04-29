@@ -35,9 +35,6 @@ gompress partitions/divides a file into --divisions argument number of separate 
 
 the partitions ranges are tabulated as well as all intermediate work along with checksums. *this enables resuming a compression later*, as when network conditions or prices may be more favorable. **TRY IT by ctrl-c midway and resume**
 
-# USAGE AND TIPS
-
-
 ## adjust the maximum number of workers by changing the number of divisions:
 ```bash
 $ python3 gompress.py --target myfile.raw --divisions 5
@@ -70,9 +67,9 @@ testnet nodes are not high caliber. to get extreme compression on extreme sizes 
 
 expect gompress to evolve with golem and to become more performant accordingly e.g. with improved networking. gompress is continually being optimized within current parameters however. stay tuned.
 
-the default min-cpu-threads argument is treated specially by gompress and is set to 0 by default: which will parallelize compression of each task across all threads on any worker node. i recommend one focus on the --divisions argument and if targeting higher end nodes to use gc__filterms before tweaking min-cpu-threads. the end result, however, of adjusting min-cpu-threads are: 1) only providers with at least that many threads are selected, and 2) the task work is divided in parallel on a single node using just that many threads (as opposed to all available). for more information about threaded compression in xz, see the manpage on the -T argument (in this case the default is -T0).
+--min-cpu-threads is set to 0 by default to parallelize compression of task data across all cores on the assigned provider. it is recommended to leave the default on min-cpu-threads but adjust the --divisions argument to optimize a run. begin with the assumption that providers give at most one core and --divisions will imply the number of cores you want to parallelize across. the larger the file, the more divisions might make sense. if unsure, leave at the default.
 
 ## todo
 project memory requirements to better anticipate node requirements.
-heuristics heuristics heurisitcs
+heuristics heuristics heurisitcs to recommend divisions etc run-per-one automatically
 may make a single high core node the default (until golem networking speeds are improved)
