@@ -1,7 +1,11 @@
 # gompress
 compress a file over distributed golem nodes
 
-data is getting big. fortunately, this means more time on the clock waiting for the data to be prepared for sharing with colleagues around the world and getting paid while dreaming of an escape to a tropical island. besides this problem, gompress solves the compression problem of needing to divide the work of the xz compression algorithm to more cores than would normally be possible (i.e. an unlimited number of cores limited only by aggregate number of threads on the golem network).
+gompress solves the problem of needing to compress a file (such as an archive file) when doing so on the requestor side would be prohibitively time consuming (e.g. on a small virtual server).
+
+at last, you can stop daydreaming on company time while waiting for a compression to finish on your tiny virtual server and get back to work. get excited!
+
+currently, gompress compresses a single file but archiving multiple files is a solution being explored. stay tuned.
 
 # requirements
 - yapapi 0.9.1
@@ -27,17 +31,12 @@ https://user-images.githubusercontent.com/46289600/164893401-08b878db-b068-4925-
 **note**: xz is free for windows, download directly or visit root website at: https://tukaani.org/xz/xz-5.2.5-windows.zip
 
 # MOA
-gompress partitions/divides a file into separate parts sending them to golem nodes, where xz is invoked to compress the partitions using the maximum number of cores available. it is parallelism on two levels: one, the order in which nodes finish is not determined, and two, all cores are used on each node in parallel. the parts are asynchronously retrieved and stitched together into a cohesive whole that can be decompressed via xz.
+gompress partitions/divides a file into --divisions argument number of separate parts, sending them to golem nodes, where xz is invoked to compress the partitions using the maximum number of cores available. it is parallelism on two levels: one, the order in which nodes finish is not determined, and two, all cores are used on each node in parallel. the parts are asynchronously retrieved and stitched together into a cohesive whole that can be decompressed via xz.
 
-the partitions ranges are tabulated as well as all intermediate work along with checksums. *this enables resuming a compression later*, as when network conditions or prices may be more favorable. **TRY IT**
+the partitions ranges are tabulated as well as all intermediate work along with checksums. *this enables resuming a compression later*, as when network conditions or prices may be more favorable. **TRY IT by ctrl-c midway and resume**
 
 # USAGE AND TIPS
 
-## ask gompress to perform light local compression first to save on file transfer (xfer) time significantly via --xfer-compression-level
-
-```bash
-$ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta --target myfile.raw --divisions 10 --compression=9e --xfer-compression-level 1
-```
 
 ## adjust the maximum number of workers by changing the number of divisions:
 ```bash
@@ -48,11 +47,18 @@ $ python3 gompress.py --target myfile.raw --divisions 5
 ```bash
 $ python3 gompress.py --target myfile.raw --compression 9e
 ```
+
+## ask gompress to perform light local compression first to save on file transfer (xfer) time significantly via --xfer-compression-level
+
+```bash
+$ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta --target myfile.raw --divisions 10 --compression=9e --xfer-compression-level 1
+```
+
 ## use gompress as a benchmark
 since work is more or less evenly divided, gompress log messages with respect to time is indicative of relative performance. make note of the fastest nodes and use them for future work e.g. with gc__filterms. currently, the best way to do this is normalize against the checksum, which is simply the length of the output file expected from each node. group by the task data value to map timing to a specific node name.
 
 ## clone gc__filterms into the project root directory
-### it just works -- use the environment variables
+### it just works -- use the environment variables. select a single node (or few) with many cores and set --divisions 1 (or few count)
 ```bash
 $ export GNPROVIDER_BL=fascinated-system
 $ export FILTERMSVERBOSE=1
@@ -69,3 +75,4 @@ the default min-cpu-threads argument is treated specially by gompress and is set
 ## todo
 project memory requirements to better anticipate node requirements.
 heuristics heuristics heurisitcs
+may make a single high core node the default (until golem networking speeds are improved)
