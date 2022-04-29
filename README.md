@@ -16,13 +16,15 @@ https://user-images.githubusercontent.com/46289600/164893401-08b878db-b068-4925-
 
 # self demo
 ```bash
-(gompress) $ wget http://aleph.gutenberg.org/ls-lR
+(gompress) $ wget http://aleph.gutenberg.org/ls-lR # alternatively, download with your browser
 (gompress) $ md5sum ls-lR # note this for later
 (gompress) $ python3.9 gompress.py --target ls-lR
 (gompress) $ cd workdir/hashvaluefromoutput/final
 (gompress final) $ xz -d ls-lR.xz
 (gompress final) $ md5sum ls-lR # compare with earlier
 ```
+
+**note**: xz is free for windows, download directly or visit root website at: https://tukaani.org/xz/xz-5.2.5-windows.zip
 
 # MOA
 gompress partitions/divides a file into separate parts sending them to golem nodes, where xz is invoked to compress the partitions using the maximum number of cores available. it is parallelism on two levels: one, the order in which nodes finish is not determined, and two, all cores are used on each node in parallel. the parts are asynchronously retrieved and stitched together into a cohesive whole that can be decompressed via xz.
