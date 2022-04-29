@@ -5,7 +5,7 @@ gompress solves the problem of needing to compress a file (such as an archive fi
 
 at last, you can stop daydreaming on company time while waiting for a compression to finish on your tiny virtual server and get back to work. get excited!
 
-currently, gompress compresses a single file but archiving multiple files is a solution being explored. stay tuned.
+currently, gompress compresses a single file (which itself may be an uncompressed archive) but collecting and archiving multiple files is a solution being explored. stay tuned.
 
 # requirements
 - yapapi 0.9.1
@@ -31,7 +31,7 @@ https://user-images.githubusercontent.com/46289600/164893401-08b878db-b068-4925-
 **note**: xz is free for windows, download directly or visit root website at: https://tukaani.org/xz/xz-5.2.5-windows.zip
 
 # MOA
-gompress partitions/divides a file into --divisions argument number of separate parts, sending them to golem nodes, where xz is invoked to compress the partitions using the maximum number of cores available. it is parallelism on two levels: one, the order in which nodes finish is not determined, and two, all cores are used on each node in parallel. the parts are asynchronously retrieved and stitched together into a cohesive whole that can be decompressed via xz.
+gompress partitions/divides a file into --divisions argument number of separate parts, sending them to --divisions count golem nodes, where xz is invoked to compress the partitions using the maximum number of cores available. it is parallelism on two levels: one, the order in which nodes finish is not determined, and two, all cores are used on each node in parallel. the parts are asynchronously retrieved and stitched together into a cohesive whole that can be decompressed via xz.
 
 the partitions ranges are tabulated as well as all intermediate work along with checksums. *this enables resuming a compression later*, as when network conditions or prices may be more favorable. **TRY IT by ctrl-c midway and resume**
 
@@ -67,7 +67,7 @@ testnet nodes are not high caliber. to get extreme compression on extreme sizes 
 
 expect gompress to evolve with golem and to become more performant accordingly e.g. with improved networking. gompress is continually being optimized within current parameters however. stay tuned.
 
---min-cpu-threads is set to 0 by default to parallelize compression of task data across all cores on the assigned provider. it is recommended to leave the default on min-cpu-threads but adjust the --divisions argument to optimize a run. begin with the assumption that providers give at most one core and --divisions will imply the number of cores you want to parallelize across. the larger the file, the more divisions might make sense. if unsure, leave at the default.
+--min-cpu-threads is set to 0 by default to parallelize compression of task data across all cores on the assigned provider. it is recommended to leave the default on min-cpu-threads but adjust the --divisions argument to optimize a run. begin with the assumption that providers give at most one core and --divisions will imply the number of cores you want to parallelize across. the larger the file, asjusting to more divisions might make sense and vice-versa. if unsure, leave at the default.
 
 ## todo
 project memory requirements to better anticipate node requirements.
