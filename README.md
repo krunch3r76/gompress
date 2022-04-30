@@ -54,7 +54,9 @@ testnet nodes are not high caliber. to get extreme compression on extreme sizes 
 
 expect gompress to evolve with golem and to become more performant accordingly e.g. with improved networking. gompress is continually being optimized within current parameters however. stay tuned.
 
---min-cpu-threads currently would guide to more modern cpu's but should not improve timing and compression ratio as the work is optimally divided to leverage single cores (regardless of the actual number on a provider) on the golem network. for very large files 2 cores may help and this will be a future optimization so is not relevant atm
+--min-cpu-threads currently would guide to more modern cpu's but should not improve timing and compression ratio as the work is optimally divided to leverage single cores (regardless of the actual number on a provider) on the golem network. the rationale is primarily that uploads are not subject to a single end-point's bandwidth, as uploads occur as several streams simultaneously in the background. this transitively applies to downloads.
+
+for very large files, utilizing 2 cores may help and this will be a future optimization but is not relevant atm
 
 ## todo
 project memory requirements to better anticipate node requirements.
