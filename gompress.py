@@ -304,7 +304,6 @@ if __name__ == "__main__":
     ctx = CTX(
         data_dir,
         target_file,
-        args.compression,
         args.xfer_compression_level,
         args.min_cpu_threads,
     )
