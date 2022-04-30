@@ -58,6 +58,29 @@ class MyTask(Task):
         super().__init__(data)
 
 
+def find_optimal_xz_preset(file_length):
+
+    KiB = 2**10
+    MiB = 2**20
+
+    if file_length < 256 * KiB:
+        return "-0e"
+    elif file_length < 2 * MiB:
+        return "-1e"
+    elif file_length < 4 * MiB:
+        return "-2e"
+    elif file_length < 8 * MiB:
+        return "-4e"
+    elif file_length < 16 * MiB:
+        return "-6e"
+    elif file_length < 32 * MiB:
+        return "-7e"
+    elif file_length < 64 * MiB:
+        return "-8e"
+    else:
+        return "-9e"
+
+
 async def main(
     ctx,
     subnet_tag,
@@ -115,13 +138,19 @@ async def main(
                     view_to_temporary_file.tobytes(), path_to_remote_target
                 )
             # run script on uploaded target
+
+            optimal_compression_argument = find_optimal_xz_preset(
+                task.mainctx.path_to_target.stat().st_size
+            )
+
             future_result = script.run(
                 "/root/xz.sh",
                 path_to_remote_target.name,  # shell script is run from workdir, expects
                 # filename is local to workdir
                 # f"-T{task.mainctx.min_threads}",
-                f"-T0",  # utilize all threads, optimize by overriding compression level if needed
-                f"-9e",  # adjust later as needed per task parameters
+                f"-T0",  # in the future, utilize at most 2 threads corresponding to 2 64MiB
+                # blocks at max compr
+                f"{optimal_compression_argument}",
             )  # output is stored by same name
             # resolve to processed target
             path_to_processed_target = PurePosixPath(f"/golem/output/part_{partId}.xz")
@@ -211,7 +240,7 @@ async def main(
         # if isinstance(event, yapapi.events.ProposalReceived)
         event_name = event.__class__.__name__
         if "Proposal" not in event_name and "DebitNote" not in event_name:
-            # g_logger.debug(f"{event}")
+            g_logger.debug(f"\t\t{event}")
             try:
                 if "SendBytes" in event.commands:
                     pass

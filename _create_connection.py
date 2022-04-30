@@ -14,8 +14,8 @@ def _partition(total, maxsize=None):
     else:
         for i in range(measure_count):
             rv.append(maxsize * (i + 1))
-    extra = total % maxsize
-    rv.append(rv[-1] + extra)
+        extra = total % maxsize
+        rv.append(rv[-1] + extra)
     return rv
 
 
