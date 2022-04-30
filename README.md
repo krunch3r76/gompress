@@ -35,31 +35,18 @@ gompress partitions/divides a file into --divisions (or default) argument number
 
 the partitions ranges are tabulated as well as all intermediate work along with checksums. *this enables resuming a compression later*, as when network conditions or prices may be more favorable. **TRY IT by ctrl-c midway and resume**
 
-## adjust the maximum number of workers by changing the number of divisions:
-```bash
-$ python3 gompress.py --target myfile.raw --divisions 5
-```
-
-## improve compression rate by adjusting the xz compression preset level 
-```bash
-$ python3 gompress.py --target myfile.raw --compression 9e
-```
-
 ## ask gompress to perform light local compression first to save on file transfer (xfer) time significantly via --xfer-compression-level
 
 ```bash
 $ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta --target myfile.raw --divisions 10 --compression=9e --xfer-compression-level 1
 ```
 
-## use gompress as a benchmark
-since work is more or less evenly divided, gompress log messages with respect to time is indicative of relative performance. make note of the fastest nodes and use them for future work e.g. with gc__filterms. currently, the best way to do this is normalize against the checksum, which is simply the length of the output file expected from each node. group by the task data value to map timing to a specific node name.
-
 ## clone gc__filterms into the project root directory
 ### it just works -- use the environment variables. tip: select a single node (or few) with many cores and set --divisions 1 e.g.
 ```bash
 $ export GNPROVIDER_BL=fascinated-system
 $ export FILTERMSVERBOSE=1
-$ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta --target myfilelarge.raw --divisions 10 --compression=9e --xfer-compression-level 1
+$ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta --target myfilelarge.raw --xfer-compression-level 1
 ```
 
 ## comments
@@ -67,9 +54,7 @@ testnet nodes are not high caliber. to get extreme compression on extreme sizes 
 
 expect gompress to evolve with golem and to become more performant accordingly e.g. with improved networking. gompress is continually being optimized within current parameters however. stay tuned.
 
---min-cpu-threads is set to 0 by default to parallelize compression of task data across all cores on the assigned provider. it is recommended to leave the default on min-cpu-threads but adjust the --divisions argument to optimize a run. begin with the assumption that providers give at most one core and --divisions will imply the number of cores you want to parallelize across. the larger the file, asjusting to more divisions might make sense and vice-versa. if unsure, leave at the default.
+--min-cpu-threads currently would guide to more modern cpu's but should not improve timing as the work is divided among single cores on the golem network. (for very large files 2 cores may help and this will be a future optimization so is not relevant atm)
 
 ## todo
 project memory requirements to better anticipate node requirements.
-heuristics heuristics heurisitcs to recommend divisions etc run-per-one automatically
-may make a single high core node the default (until golem networking speeds are improved)
