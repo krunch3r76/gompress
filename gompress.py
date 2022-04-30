@@ -68,8 +68,8 @@ async def main(
 ):
     package = await vm.repo(
         image_hash="8680582af7665463e0c79ceadf72f8d82643b973108c4a8fc1bb65af",
-        # only run on provider nodes that have more than 0.5gb of RAM available
-        min_mem_gib=0.5,
+        # only run on provider nodes that have more than 1.0gb of RAM available
+        min_mem_gib=1.0,  # later set this to 1.5 when 128mb divisions allowed
         # only run on provider nodes that have more than 2gb of storage space available
         min_storage_gib=2.0,
         # only run on provider nodes which a certain number of CPU threads (logical CPU cores) available
