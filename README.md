@@ -31,14 +31,14 @@ https://user-images.githubusercontent.com/46289600/164893401-08b878db-b068-4925-
 **note**: xz is free for windows, download directly or visit root website at: https://tukaani.org/xz/xz-5.2.5-windows.zip
 
 # MOA
-gompress partitions/divides a file into --divisions (or default) argument number of separate parts, sending them to --divisions count golem nodes, where xz is invoked to compress the partitions using the maximum number of cores available. it is parallelism on two levels: one, parts or divisions are distributed to different nodes to be worked on, and two, all cores are used on each node in to compress in parallel. the parts are asynchronously retrieved and stitched together into a cohesive whole that can be decompressed via xz.
+gompress partitions/divides a file into measures of 64MiB, sending them to golem nodes, where xz is invoked to compress the partitions. the parts are asynchronously retrieved and stitched together into a cohesive whole that can be decompressed via xz.
 
-the partitions ranges are tabulated as well as all intermediate work along with checksums. *this enables resuming a compression later*, as when network conditions or prices may be more favorable. **TRY IT by ctrl-c midway and resume**
+the partition ranges are tabulated as well as all intermediate work along with checksums. *this enables resuming a compression later*, as when network conditions or prices may be more favorable. **TRY IT by ctrl-c midway and resume**
 
 ## ask gompress to perform light local compression first to save on file transfer (xfer) time significantly via --xfer-compression-level
 
 ```bash
-$ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta --target myfile.raw --divisions 10 --compression=9e --xfer-compression-level 1
+$ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta --target myfile.raw --xfer-compression-level 1
 ```
 
 ## clone gc__filterms into the project root directory
@@ -46,15 +46,15 @@ $ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta --t
 ```bash
 $ export GNPROVIDER_BL=fascinated-system
 $ export FILTERMSVERBOSE=1
-$ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta --target myfilelarge.raw --xfer-compression-level 1
+$ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta --target myfilelarge.raw --xfer-compression-level 0
 ```
 
 ## comments
-testnet nodes are not high caliber. to get extreme compression on extreme sizes consider being selective of high performance nodes on the mainnet. you may find such nodes via my gc__listoffers application [1]. you may also incorporate my gc__filterms by cloning it or linking from it from the project root directory [2].
+testnet nodes are not high caliber. to get extreme compression on extreme sizes consider being selective of high performance nodes on the mainnet. you may set --min-cpu-threads to a number of threads where you might expect a powerful cpu. alternatively, you may find such nodes via my gc__listoffers application [1]. you may also incorporate my gc__filterms by cloning it or linking from it from the project root directory [2].
 
 expect gompress to evolve with golem and to become more performant accordingly e.g. with improved networking. gompress is continually being optimized within current parameters however. stay tuned.
 
---min-cpu-threads currently would guide to more modern cpu's but should not improve timing as the work is divided among single cores on the golem network. (for very large files 2 cores may help and this will be a future optimization so is not relevant atm)
+--min-cpu-threads currently would guide to more modern cpu's but should not improve timing and compression ratio as the work is divided among many single cores on the golem network. (for very large files 2 cores may help and this will be a future optimization so is not relevant atm)
 
 ## todo
 project memory requirements to better anticipate node requirements.
