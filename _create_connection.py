@@ -1,64 +1,62 @@
 import sqlite3
 from debug.mylogging import g_logger
 
-
-def _partition(total, maxcount):
-    """return an array of n tuples of start and end lengths measuring length evenly n-1 times"""
-    if total == 1:
-        return [total]
-
-    if total <= maxcount:
-        count = total
-    else:
-        count = maxcount
-
-    minimum = int(total / count)
-    while minimum == 1:
-        count -= 1
-        minimum = int(total / count)
-
-    extra = int(total % count)
-
+# maxcount being deprecated
+def _partition(total, maxsize=None):
+    """return an array of end lengths measuring maxsize evenly
+    at least n-1 times"""
+    if maxsize == None:
+        maxsize = 64 * 2**20
     rv = []
-    for _ in range(count - 1):
-        rv.append(minimum)
-    rv.append(minimum + extra)
+    measure_count = total // maxsize
+    if measure_count == 0:
+        rv.append(total)
+    else:
+        for i in range(measure_count):
+            rv.append(maxsize * (i + 1))
+    extra = total % maxsize
+    rv.append(rv[-1] + extra)
     return rv
 
 
-def _partitionRanges(target_length, part_count):
-    lengths = _partition(target_length, part_count)
+def _partitionRanges(target_length):
+    # lengths = _partition(target_length, part_count)
+    offsets = _partition(target_length)
+    g_logger.debug(offsets)
     ranges = [
         (
             0,
-            lengths.pop(0),
+            offsets.pop(0),
         )
     ]
     # lengths.pop(0)
-    for i, length in enumerate(lengths):
-        next_range = (ranges[i][1], ranges[i][1] + length)
+    for i, offset in enumerate(offsets, 1):
+        next_range = (ranges[i - 1][1], offset)
         ranges.append(next_range)
+
+    g_logger.debug(ranges)
+
     return ranges
 
 
-def _populate_connection(con, target_length, workDirectoryInfo, part_count):
+def _populate_connection(con, target_length, workDirectoryInfo):
     """build meta details and add to database"""
+
+    ranges = _partitionRanges(target_length)
+
     con.execute(
         """
             INSERT INTO OriginalFile(file_hash, part_count) VALUES (?,?)""",
         (
             workDirectoryInfo.path_to_target_wdir.name,
-            part_count,
+            len(ranges),
         ),
     )
 
-    ranges = _partitionRanges(target_length, part_count)
     con.executemany("INSERT INTO Part(start, end) VALUES (?,?)", ranges)
 
 
-def create_connection(
-    path_to_connection_file, path_to_target, workDirectoryInfo, part_count
-):
+def create_connection(path_to_connection_file, path_to_target, workDirectoryInfo):
     """create a new database and return the connection"""
     # part_count = int(part_count) # kludge, should be guaranteed as pre
     workDirectoryInfo.create_skeleton()
@@ -98,8 +96,6 @@ def create_connection(
             pathStr TEXT NOT NULL)"""
     )
 
-    _populate_connection(
-        con, path_to_target.stat().st_size, workDirectoryInfo, part_count
-    )
+    _populate_connection(con, path_to_target.stat().st_size, workDirectoryInfo)
 
     return con

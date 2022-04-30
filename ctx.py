@@ -1,7 +1,7 @@
 from workdirectoryinfo import WorkDirectoryInfo, checksum
 import os
 import sqlite3
-from _create_connection import create_connection
+from _create_connection import create_connection, _partition
 import io
 from pathlib import Path
 from debug.mylogging import g_logger
@@ -25,7 +25,7 @@ class CTX:
         self,
         path_to_rootdir_in,
         path_to_target_in,
-        part_count_in,
+        # part_count_in,
         compression_level_in,
         precompression_level_in,
         min_threads_in,
@@ -37,7 +37,7 @@ class CTX:
         self.path_to_target = path_to_target_in
         self.target_open_file = self.path_to_target.open("rb")
         self.path_to_rootdir = path_to_rootdir_in
-        self.part_count = part_count_in
+        self.part_count = len(_partition(self.path_to_target.stat().st_size, None))
         self.work_directory_info = WorkDirectoryInfo(
             self.path_to_rootdir, self.path_to_target
         )
@@ -63,7 +63,9 @@ class CTX:
             last_part_count = self.con.execute(
                 "SELECT part_count FROM OriginalFile"
             ).fetchone()[0]
+
             g_logger.debug(f"last part count: {last_part_count}")
+
             if last_part_count != self.part_count:
                 g_logger.debug(
                     f"the part count differs from the last work which was for {self.part_count}!"
@@ -80,7 +82,6 @@ class CTX:
                 self.path_to_connection_file,
                 self.path_to_target,
                 self.work_directory_info,
-                self.part_count,
             )
 
         if self.path_to_final_target.exists():

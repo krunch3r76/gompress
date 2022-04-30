@@ -6,7 +6,7 @@
 
 MAX_PRICE_CPU_HR = "0.019"
 MAX_PRICE_DUR_HR = "0.0"
-
+MAX_MINUTES_UNTIL_TASK_IS_A_FAILURE = 15
 from datetime import datetime, timedelta
 import pathlib
 import sys
@@ -78,7 +78,9 @@ async def main(
 
     async def worker(ctx: WorkContext, tasks):
         # Set timeout for the first script executed on the provider
-        script = ctx.new_script(timeout=timedelta(minutes=30))
+        script = ctx.new_script(
+            timeout=timedelta(minutes=MAX_MINUTES_UNTIL_TASK_IS_A_FAILURE)
+        )
 
         async for task in tasks:
             partId = task.data  # subclassed Task with id attribute
@@ -117,7 +119,8 @@ async def main(
                 "/root/xz.sh",
                 path_to_remote_target.name,  # shell script is run from workdir, expects
                 # filename is local to workdir
-                f"-T{task.mainctx.min_threads}",
+                # f"-T{task.mainctx.min_threads}",
+                f"-T0",  # utilize all threads, optimize by overriding compression level if needed
                 f"-{task.mainctx.compression_level}",
             )  # output is stored by same name
             # resolve to processed target
@@ -151,7 +154,9 @@ async def main(
                 raise
 
             # reinitialize the script which we send to the engine to compress subsequent parts
-            script = ctx.new_script(timeout=timedelta(minutes=30))
+            script = ctx.new_script(
+                timeout=timedelta(minutes=MAX_MINUTES_UNTIL_TASK_IS_A_FAILURE)
+            )
 
             if show_usage:
                 raw_state = await ctx.get_raw_state()
@@ -206,7 +211,7 @@ async def main(
         # if isinstance(event, yapapi.events.ProposalReceived)
         event_name = event.__class__.__name__
         if "Proposal" not in event_name and "DebitNote" not in event_name:
-            g_logger.debug(f"{event}")
+            # g_logger.debug(f"{event}")
             try:
                 if "SendBytes" in event.commands:
                     pass
@@ -230,7 +235,7 @@ async def main(
             worker,
             [MyTask(ctx, pending_id) for pending_id in list_pending_ids],
             payload=package,
-            max_workers=max_workers,
+            max_workers=ctx.part_count,
             timeout=timeout,
         )
         async for task in completed_tasks:
@@ -278,12 +283,6 @@ if __name__ == "__main__":
     )
     parser.add_argument("--target", help="path to file to compress")
     parser.add_argument(
-        "--divisions",
-        type=int,
-        default=10,
-        help="Number partitions to distribute for invididual processing; default: %(default)d",
-    )
-    parser.add_argument(
         "--enable_logging", default=True, help="write log files; default: %(default)s"
     )
     parser.add_argument(
@@ -299,6 +298,7 @@ if __name__ == "__main__":
         help="compression from 0 to 9 locally before uploading to nodes (must be less than"
         " --compresssion), negative value implies no pre-compression (default)",
     )
+    # to do, add division size expert argument...
     # now = datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
     # parser.set_defaults(log_file=f"gompress-{now}.log")
     args = parser.parse_args()
@@ -306,11 +306,9 @@ if __name__ == "__main__":
     data_dir = Path("./workdir")
     data_dir.mkdir(exist_ok=True)
     target_file = Path(args.target)  # todo make an argument
-    max_workers = args.divisions
     ctx = CTX(
         data_dir,
         target_file,
-        max_workers,
         args.compression,
         args.xfer_compression_level,
         args.min_cpu_threads,
