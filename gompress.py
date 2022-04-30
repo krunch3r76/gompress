@@ -67,7 +67,7 @@ async def main(
     show_usage=False,
 ):
     package = await vm.repo(
-        image_hash="5955d4f1a18eed6b90687c377156d20423466deeaa51962e8bb91292",
+        image_hash="8680582af7665463e0c79ceadf72f8d82643b973108c4a8fc1bb65af",
         # only run on provider nodes that have more than 0.5gb of RAM available
         min_mem_gib=0.5,
         # only run on provider nodes that have more than 2gb of storage space available

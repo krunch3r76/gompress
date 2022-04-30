@@ -6,6 +6,9 @@ NAMESTEM="$(echo $1 | sed -E 's/([^.]+)(\.xz)?/\1/')"
 OUTPUT_DIR="/golem/output"
 OUTPUT_FILEPATH="$OUTPUT_DIR/$NAMESTEM.xz"
 
+shift
+ARGS="$@"
+
 shopt -s nocasematch
 REGEX="\.xz$"
 if [[ $TARGET_FILE =~ $REGEX ]]; then
