@@ -121,7 +121,7 @@ async def main(
                 # filename is local to workdir
                 # f"-T{task.mainctx.min_threads}",
                 f"-T0",  # utilize all threads, optimize by overriding compression level if needed
-                f"-{task.mainctx.compression_level}",
+                f"-9e",  # adjust later as needed per task parameters
             )  # output is stored by same name
             # resolve to processed target
             path_to_processed_target = PurePosixPath(f"/golem/output/part_{partId}.xz")
