@@ -285,12 +285,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--enable_logging", default=True, help="write log files; default: %(default)s"
     )
-    parser.add_argument(
-        "--compression",
-        default="6e",
-        help="compression from 0 fastest to 9 most compressed (optionally postfixed with"
-        " e for extra cpu time); default: %(default)s",
-    )
+
     parser.add_argument(
         "--xfer-compression-level",
         type=int,
