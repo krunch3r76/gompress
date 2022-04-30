@@ -100,6 +100,7 @@ async def main(
                 compressed_intermediate = (
                     compressed_intermediate + lzmaCompressor.flush()
                 )  # upload_bytes does not play well with lzmaCompressor (does not flush), so ...
+                # review, upload_bytes requires len() so intermediary may not make sense
                 script.upload_bytes(
                     compressed_intermediate,
                     path_to_remote_target,
@@ -111,7 +112,6 @@ async def main(
                 script.upload_bytes(
                     view_to_temporary_file.tobytes(), path_to_remote_target
                 )
-
             # run script on uploaded target
             future_result = script.run(
                 "/root/xz.sh",
@@ -202,12 +202,24 @@ async def main(
     if moduleFilterProviderMS:
         strategy = FilterProviderMS(strategy)
 
+    def emitter(event):
+        # if isinstance(event, yapapi.events.ProposalReceived)
+        event_name = event.__class__.__name__
+        if "Proposal" not in event_name and "DebitNote" not in event_name:
+            g_logger.debug(f"{event}")
+            try:
+                if "SendBytes" in event.commands:
+                    pass
+            except:
+                pass
+
     async with Golem(
         budget=10.0,
         subnet_tag=subnet_tag,
         payment_driver=payment_driver,
         payment_network=payment_network,
         strategy=strategy,
+        event_consumer=yapapi.log.SummaryLogger(emitter).log,
     ) as golem:
         print_env_info(golem)
 
