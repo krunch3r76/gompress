@@ -17,6 +17,7 @@ tested on linux and windows. expected to work cross platform.
 # video demo
 
 https://user-images.githubusercontent.com/46289600/164893401-08b878db-b068-4925-bb3d-49a0b099cc28.mp4
+note that this video is from an early version of gompress that required a --target argument on the command line, whereas target is whatever is given instead of an option. additionally, gompress now partitions files into 64MiB pieces or one if less than or equal.
 
 # self demo
 ```bash
@@ -51,7 +52,7 @@ $ export FILTERMSVERBOSE=1
 $ python3.9 ./gompress.py myfilelarge.raw --payment-network polygon --subnet-tag public-beta
 ```
 
-## comments
+# comments
 testnet nodes are not high caliber. to get extreme compression on extreme sizes consider being selective of high performance nodes on the mainnet. you may set --min-cpu-threads to a number of threads where you might expect a powerful cpu. alternatively, you may find such nodes via my gc__listoffers application [1]. you may also incorporate my gc__filterms by cloning it or linking from it from the project root directory [2].
 
 expect gompress to evolve with golem and to become more performant accordingly e.g. with improved networking. gompress is continually being optimized within current parameters however. stay tuned.
@@ -60,5 +61,5 @@ expect gompress to evolve with golem and to become more performant accordingly e
 
 for very large files, utilizing 2 cores may help and this will be a future optimization but is not relevant atm
 
-## todo
+# todo
 project memory requirements to better anticipate node requirements.
