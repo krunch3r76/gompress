@@ -44,11 +44,11 @@ $ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta myf
 ```
 
 ## clone gc__filterms into the project root directory
-### it just works -- use the environment variables. tip: select a single node (or few) with many cores and set --divisions 1 e.g.
+### it just works -- use the environment variables.
 ```bash
 $ export GNPROVIDER_BL=fascinated-system
 $ export FILTERMSVERBOSE=1
-$ python3.9 ./gompress.py myfilelarge.raw --payment-network polygon --subnet-tag public-beta --xfer-compression-level 0
+$ python3.9 ./gompress.py myfilelarge.raw --payment-network polygon --subnet-tag public-beta
 ```
 
 ## comments
