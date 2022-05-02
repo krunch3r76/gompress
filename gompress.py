@@ -258,7 +258,6 @@ async def main(
             min(init_overhead + len(list_pending_ids) * 2, max_timeout), min_timeout
         )
     )
-    # timeout = timedelta(minutes=29)  # todo, make dynamic
 
     # sane defaults for cpu and dur per hr
     if payment_network == "rinkeby":

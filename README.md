@@ -22,7 +22,7 @@ https://user-images.githubusercontent.com/46289600/164893401-08b878db-b068-4925-
 ```bash
 (gompress) $ wget http://aleph.gutenberg.org/ls-lR # alternatively, download with your browser
 (gompress) $ md5sum ls-lR # note this for later
-(gompress) $ python3.9 gompress.py --target ls-lR
+(gompress) $ python3.9 gompress.py ls-lR
 (gompress) $ cd workdir/hashvaluefromoutput/final
 (gompress final) $ xz -d ls-lR.xz
 (gompress final) $ md5sum ls-lR # compare with earlier
@@ -35,10 +35,12 @@ gompress partitions/divides a file into measures of 64MiB, sending them to golem
 
 the partition ranges are tabulated as well as all intermediate work along with checksums. *this enables resuming a compression later*, as when network conditions or prices may be more favorable. **TRY IT by ctrl-c midway and resume**
 
+# ADVANCED USAGE
+
 ## ask gompress to perform light local compression first to save on file transfer (xfer) time significantly via --xfer-compression-level
 
 ```bash
-$ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta --target myfile.raw --xfer-compression-level 1
+$ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta myfile.raw --xfer-compression-level 1
 ```
 
 ## clone gc__filterms into the project root directory
@@ -46,7 +48,7 @@ $ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta --t
 ```bash
 $ export GNPROVIDER_BL=fascinated-system
 $ export FILTERMSVERBOSE=1
-$ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta --target myfilelarge.raw --xfer-compression-level 0
+$ python3.9 ./gompress.py myfilelarge.raw --payment-network polygon --subnet-tag public-beta --xfer-compression-level 0
 ```
 
 ## comments
