@@ -18,7 +18,7 @@ tested on linux and windows. expected to work cross platform.
 
 https://user-images.githubusercontent.com/46289600/164893401-08b878db-b068-4925-bb3d-49a0b099cc28.mp4
 
-note that this video is from an early version of gompress that required a --target argument on the command line, whereas target is whatever is given instead of an option. additionally, gompress now partitions files into 64MiB pieces or one if less than or equal.
+note that this video is from an early version of gompress that required a --target argument on the command line, whereas target is whatever is given instead of an option. additionally, gompress now partitions a file into 64MiB pieces or one if less than or equal.
 
 # self demo
 ```bash
@@ -60,7 +60,7 @@ expect gompress to evolve with golem and to become more performant accordingly e
 
 --min-cpu-threads currently would guide to more modern cpu's but should not improve timing and compression ratio as the work is optimally divided to leverage single cores (regardless of the actual number on a provider) on the golem network. the rationale is primarily that uploads are not subject to a single end-point's bandwidth, as uploads occur as several streams simultaneously in the background. this transitively applies to downloads.
 
-for very large files, utilizing 2 cores may help and this will be a future optimization but is not relevant atm
+for very large files, utilizing 2 cores may help and this will be a future optimization but is not relevant atm because 1 core is optimized for <= 64 MiB piece.
 
 # todo
 project memory requirements to better anticipate node requirements.
