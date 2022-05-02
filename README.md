@@ -7,20 +7,20 @@ at last, you can stop daydreaming on company time while waiting for a compressio
 
 currently, gompress compresses a single file (which itself may be an uncompressed archive) but collecting and archiving multiple files is a solution being explored. stay tuned.
 
-# requirements
+## REQUIREMENTS
 - yapapi 0.9.1
 - a golem requestor installation with yagna client running and app-key exported etc
 - python 3.8-3.9
 
 tested on linux and windows. expected to work cross platform.
 
-# video demo
+## VIDEO DEMO
 
 https://user-images.githubusercontent.com/46289600/164893401-08b878db-b068-4925-bb3d-49a0b099cc28.mp4
 
 note that this video is from an early version of gompress that required a --target argument on the command line, whereas target is whatever is given instead of an option. additionally, gompress now partitions a file into 64MiB pieces or one if less than or equal.
 
-# self demo
+## SELF DEMO
 ```bash
 (gompress) $ wget http://aleph.gutenberg.org/ls-lR # alternatively, download with your browser
 (gompress) $ md5sum ls-lR # note this for later
@@ -32,28 +32,28 @@ note that this video is from an early version of gompress that required a --targ
 
 **note**: xz is free for windows, download directly or visit root website at: https://tukaani.org/xz/xz-5.2.5-windows.zip
 
-# MOA
+## MOA
 gompress partitions/divides a file into measures of 64MiB, sending them to golem nodes, where xz is invoked to compress the partitions. the parts are asynchronously retrieved and stitched together into a cohesive whole that can be decompressed via xz.
 
 the partition ranges are tabulated as well as all intermediate work along with checksums. *this enables resuming a compression later*, as when network conditions or prices may be more favorable. **TRY IT on a file >64MiB by ctrl-c after at least one task has finished and resume**
 
-# ADVANCED USAGE
+## ADVANCED USAGE
 
-## ask gompress to perform light local compression first to save on file transfer (xfer) time significantly via --xfer-compression-level
+### ask gompress to perform light local compression first to save on file transfer (xfer) time significantly via --xfer-compression-level
 
 ```bash
 $ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta myfile.raw --xfer-compression-level 1
 ```
 
-## clone gc__filterms into the project root directory
-### it just works -- use the environment variables.
+### clone gc__filterms into the project root directory
+#### it just works -- use the environment variables.
 ```bash
 $ export GNPROVIDER_BL=fascinated-system
 $ export FILTERMSVERBOSE=1
 $ python3.9 ./gompress.py myfilelarge.raw --payment-network polygon --subnet-tag public-beta
 ```
 
-# comments
+## COMMENTS
 testnet nodes are not high caliber. to get extreme compression on extreme sizes consider being selective of high performance nodes on the mainnet. you may set --min-cpu-threads to a number of threads where you might expect a powerful cpu. alternatively, you may find such nodes via my gc__listoffers application [1]. you may also incorporate my gc__filterms by cloning it or linking from it from the project root directory [2].
 
 expect gompress to evolve with golem and to become more performant accordingly e.g. with improved networking. gompress is continually being optimized within current parameters however. stay tuned.
