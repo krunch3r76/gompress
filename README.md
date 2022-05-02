@@ -39,7 +39,7 @@ the partition ranges are tabulated as well as all intermediate work along with c
 
 ## ADVANCED USAGE
 
-### ask gompress to perform light local compression first to save on file transfer (xfer) time significantly via --xfer-compression-level
+### ask gompress to perform light local compression first to save on file transfer (xfer) i.e. upload time significantly via --xfer-compression-level
 
 ```bash
 $ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta myfile.raw --xfer-compression-level 1
