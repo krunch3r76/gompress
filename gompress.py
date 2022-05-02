@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
 # gompress.py
+"""
+the requestor agent provisioning segments of a file for providers on the network to compress
+"""
+
 # authored by krunch3r (https://www.github.com/krunch3r76)
 # license GPL 3.0
 # skeleton and utils adopted from Golem yapapi's code
+
 
 MAX_PRICE_CPU_HR = "0.019"
 MAX_PRICE_DUR_HR = "0.0"
@@ -51,7 +56,7 @@ else:
 
 
 class MyTask(Task):
-    """Task extended with reference to context"""
+    """Task class extended to store a reference to the caller (ctx)"""
 
     def __init__(self, mainctx, data):
         self.mainctx = mainctx
@@ -59,6 +64,16 @@ class MyTask(Task):
 
 
 def find_optimal_xz_preset(file_length):
+    """map a file_length to the xz dictionary size that first does not exceed it
+    and return corresponding compression argument
+
+
+    :param file_length: length of the file (part) to compress
+
+
+    rationale: it is a waste of memory to use a dictionary size bigger than the
+    uncompressed file. this may imply less complexity depending on how xz implements.
+    """
 
     KiB = 2**10
     MiB = 2**20
@@ -85,22 +100,47 @@ async def main(
     ctx,
     subnet_tag,
     min_cpu_threads,
-    payment_driver=None,
-    payment_network=None,
-    show_usage=False,
+    payment_driver,
+    payment_network,
+    show_usage,
 ):
+    """partition input target file into segments of 64MiB and task to compress across golem nodes
+
+    :param ctx: the class with contextual information useful to workers
+    :param subnet_tag: provided as a cli argument
+    :param min_cpu_threads: the thread count beneath which provider offers are rejected
+        which is provided as a cli argument (only useful to eliminate unwanted providers
+        but may important if segmentation is >=128 MiB per task in the future)
+    :param payment_network: provided as a cli argument
+    :param show_usage: provided as a cli argument
+
+
+    """
+
+    # identify vm that tasked nodes are to use to process the payload/instructions
     package = await vm.repo(
         image_hash="8680582af7665463e0c79ceadf72f8d82643b973108c4a8fc1bb65af",
         # only run on provider nodes that have more than 1.0gb of RAM available
         min_mem_gib=1.0,  # later set this to 1.5 when 128mb divisions allowed
         # only run on provider nodes that have more than 2gb of storage space available
-        min_storage_gib=2.0,
+        min_storage_gib=2.0,  # this is more than enough for a 64-128 mb segment
+        # since the work is mostly done in memory
         # only run on provider nodes which a certain number of CPU threads (logical CPU cores) available
         min_cpu_threads=min_cpu_threads,
     )
 
     async def worker(ctx: WorkContext, tasks):
-        # Set timeout for the first script executed on the provider
+        """refers to the task data to lookup the range of bytes to work on
+
+        :param ctx: Provider node's work context (distinguised from gompress ctx)
+        :param tasks: iterable to pending work
+
+        a worker is associated with one and only one provider at a time via WorkContext
+        """
+
+        g_logger.debug(f"working: {ctx}")
+        # Set timeout for the first script/task to be executed on the provider given
+        # the task iterator
         script = ctx.new_script(
             timeout=timedelta(minutes=MAX_MINUTES_UNTIL_TASK_IS_A_FAILURE)
         )
@@ -143,13 +183,18 @@ async def main(
                 task.mainctx.path_to_target.stat().st_size
             )
 
+            # because we are partitioning according to the maximum dictionary size
+            # it would impose geometrically escalated memory requirements per thread
+            # without additional compression effectiveness to use more than one thread
+            # per 64 MiB (current segmentation as of this writing). Therefore, we
+            # pass -T1 to xz
             future_result = script.run(
                 "/root/xz.sh",
                 path_to_remote_target.name,  # shell script is run from workdir, expects
                 # filename is local to workdir
                 # f"-T{task.mainctx.min_threads}",
-                f"-T0",  # in the future, utilize at most 2 threads corresponding to 2 64MiB
-                # blocks at max compr
+                f"-T1",  # in the future, for 128 parts
+                # , utilize at most 2 threads corresponding to 2 64MiB
                 f"{optimal_compression_argument}",
             )  # output is stored by same name
             # resolve to processed target
@@ -182,7 +227,7 @@ async def main(
                 )
                 raise
 
-            # reinitialize the script which we send to the engine to compress subsequent parts
+            # reinitialize the script for the next task if any (partition to compress)
             script = ctx.new_script(
                 timeout=timedelta(minutes=MAX_MINUTES_UNTIL_TASK_IS_A_FAILURE)
             )
@@ -203,21 +248,19 @@ async def main(
     g_logger.debug(f"There are {len(list_pending_ids)} remaining partitions to work on")
 
     # Worst-case overhead, in minutes, for initialization (negotiation, file transfer etc.)
-    # TODO: make this dynamic, e.g. depending on the size of files to transfer
-    # init_overhead = 3
+    init_overhead = 3
     # Providers will not accept work if the timeout is outside of the [5 min, 30min] range.
-    # We increase the lower bound to 6 min to account for the time needed for our demand to
+    # We increase the lower bound to 6 min to account for the time needed for our file to
     # reach the providers.
-    # min_timeout, max_timeout = 6, 30
-    # timeout = timedelta(
-    #     minutes=max(
-    #         min(init_overhead + len(list_pending_ids) * 2, max_timeout), min_timeout
-    #     )
-    # )
-    timeout = timedelta(minutes=29)  # todo, make dynamic
+    min_timeout, max_timeout = 6, 30
+    timeout = timedelta(
+        minutes=max(
+            min(init_overhead + len(list_pending_ids) * 2, max_timeout), min_timeout
+        )
+    )
+    # timeout = timedelta(minutes=29)  # todo, make dynamic
 
     # sane defaults for cpu and dur per hr
-    print(payment_network)
     if payment_network == "rinkeby":
         max_price_for_cpu = Decimal("inf")
         max_price_for_dur = Decimal("inf")
@@ -237,10 +280,17 @@ async def main(
         strategy = FilterProviderMS(strategy)
 
     def emitter(event):
+        """sniff events before they reach the SummaryLogger on Golem
+
+        :param event: see reference to common event attributes and event types
+        reference: https://github.com/golemfactory/yapapi/blob
+                         /a1-reputation-prototype/yapapi/events.py
+        """
+
         # if isinstance(event, yapapi.events.ProposalReceived)
         event_name = event.__class__.__name__
         if "Proposal" not in event_name and "DebitNote" not in event_name:
-            g_logger.debug(f"\t\t{event}")
+            # g_logger.debug(f"\t\t{event}")
             try:
                 if "SendBytes" in event.commands:
                     pass
@@ -255,6 +305,7 @@ async def main(
         strategy=strategy,
         event_consumer=yapapi.log.SummaryLogger(emitter).log,
     ) as golem:
+
         print_env_info(golem)
 
         num_tasks = 0
@@ -296,8 +347,17 @@ async def main(
         )
 
 
-if __name__ == "__main__":
-    parser = build_parser("compress a file in parallel")
+def add_arguments_to_command_line_parser():
+    """build command line parser arguments and parse the arguments returning parser object"""
+    #########################
+    # pull in a template    #
+    #########################
+    parser = build_parser("compress a file in parallel tasked to golem providers")
+
+    #########################
+    # add arguments         #
+    #########################
+    parser.add_argument("target", help="path to file to compress")
     parser.add_argument(
         "--show-usage",
         action="store_true",
@@ -307,10 +367,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "--min-cpu-threads",
         type=int,
-        default=0,
+        default=1,
         help="require the provider nodes to have at least this number of available CPU threads",
     )
-    parser.add_argument("--target", help="path to file to compress")
+    # parser.add_argument("--target", help="path to file to compress")
     parser.add_argument(
         "--enable_logging", default=True, help="write log files; default: %(default)s"
     )
@@ -322,14 +382,20 @@ if __name__ == "__main__":
         help="compression from 0 to 9 locally before uploading to nodes (must be less than"
         " --compresssion), negative value implies no pre-compression (default)",
     )
-    # to do, add division size expert argument...
+
+    return parser
+
+
+if __name__ == "__main__":
     # now = datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
     # parser.set_defaults(log_file=f"gompress-{now}.log")
-    args = parser.parse_args()
 
+    parser = add_arguments_to_command_line_parser()
+    args = parser.parse_args()
+    target_file = Path(args.target)
     data_dir = Path("./workdir")
     data_dir.mkdir(exist_ok=True)
-    target_file = Path(args.target)  # todo make an argument
+
     ctx = CTX(
         data_dir,
         target_file,
@@ -349,8 +415,6 @@ if __name__ == "__main__":
         log_file=args.log_file if args.enable_logging else None,
     )
 
-    # confirm there exists a checksum for every partid
-    # confirm the checksum matches each partid
     if ctx.verify():
         # concatenate output files in order of partid
         ctx.concatenate_and_finalize()

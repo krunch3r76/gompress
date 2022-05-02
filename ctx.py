@@ -115,9 +115,11 @@ class CTX:
         return list_of_pending_ids
 
     def verify(self):
-        """return True if all parts match downloaded and match checksums"""
+        """look up paths to output file and corresponding checksums and return whether
+        every file checksum matches what the provider reported"""
+
         if len(self.list_pending_ids()) != 0:
-            return False
+            return False  # need all parts to verify
 
         recordset = self.con.execute(
             "SELECT pathStr, hash, partId FROM OutputFile NATURAL JOIN Checksum ORDER BY partId"
@@ -144,8 +146,12 @@ class CTX:
         return OK
 
     def concatenate_and_finalize(self):
-        """using the first part append and delete subsequent parts and rename to original
-        suffixed with .xz"""
+        """merge all the downloaded parts in order according to their suffix
+
+        beginning with the first part append and delete subsequent parts
+        finally, rename the first part to original name of target suffixed with .xz
+        """
+
         recordset = self.con.execute(
             "SELECT pathStr from OutputFile ORDER BY partId"
         ).fetchall()
@@ -162,12 +168,6 @@ class CTX:
                 # path.unlink()
         path_to_first.rename(self.path_to_final_target)
         self.reset_workdir()
-        # self.con.execute(
-        #     "DELETE FROM Checksum"
-        # )  # no checksum can exist now that parts are gone
-        # self.con.execute(
-        #     "DELETE FROM OutputFile"
-        # )  # no outputfile can exist now that parts are gone
 
     def reset_workdir(self, pending=True):
         """clear parts and associated sql records"""
