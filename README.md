@@ -30,16 +30,29 @@ note that this video is from an early version of gompress that required a --targ
 (gompress final) $ md5sum ls-lR # compare with earlier
 ```
 
-**note**: xz is free for windows, download directly or visit root website at: https://tukaani.org/xz/xz-5.2.5-windows.zip
+## ABOUT XZ
+xz is a free, well supported, highly effective compressor distributed with virtually every linux distribution. binaries are available to download from the project's web page. additionally, xz can be compiled on Mac OS X with gcc installed (instructions below)
+
+homepage: https://tukaani.org/xz
+
+windows binary (check for latest): https://tukaani.org/xz/xz-5.2.5-windows.zip
+
+# compile xz for use on mac os x command line
+```bash
+$ tar -xf xz-5.2.5.tar.bz2
+$ ./configure --prefix=$HOME/.local
+$ make && make install
+```
+**stay tuned for support for other compressors not requiring a separate installation**
 
 ## MOA
 gompress partitions/divides a file into measures of 64MiB, sending them to golem nodes, where xz is invoked to compress the partitions. the parts are asynchronously retrieved and stitched together into a cohesive whole that can be decompressed via xz.
 
-the partition ranges are tabulated as well as all intermediate work along with checksums. *this enables resuming a compression later*, as when network conditions or prices may be more favorable. **TRY IT on a file >64MiB by ctrl-c after at least one task has finished and resume**
+the partition ranges are tabulated and all intermediate work retained. *this enables resuming a compression later*, as when network conditions or prices may be more favorable. **TRY IT on a file >64MiB by ctrl-c after at least one task has finished and resume**
 
 ## ADVANCED USAGE
 
-### ask gompress to perform light local compression first to save on file transfer (xfer) i.e. upload time significantly via --xfer-compression-level
+### ask gompress to perform light local compression first to save on file transfer (xfer), i.e. upload time, significantly via --xfer-compression-level
 
 ```bash
 $ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta myfile.raw --xfer-compression-level 1
@@ -54,10 +67,10 @@ $ python3.9 ./gompress.py myfilelarge.raw --payment-network polygon --subnet-tag
 ```
 
 ## COMMENTS
-testnet nodes are not high caliber. to get extreme compression on extreme sizes consider being selective of high performance nodes on the mainnet. you may set --min-cpu-threads to a number of threads where you might expect a powerful cpu. alternatively, you may find such nodes via my gc__listoffers application [1]. you may also incorporate my gc__filterms by cloning it or linking from it from the project root directory [2].
+testnet nodes are not high caliber. to get extreme compression on extreme sizes consider being selective of high performance nodes on the mainnet. you may set --min-cpu-threads to a number of threads where you might expect a powerful cpu: you may find such nodes via my gc__listoffers application [1]. you may also incorporate my gc__filterms by cloning it or linking from it from the project root directory [2].
 
 expect gompress to evolve with golem and to become more performant accordingly e.g. with improved networking. gompress is continually being optimized within current parameters however. stay tuned.
 
---min-cpu-threads currently would guide to more modern cpu's but should not improve timing and compression ratio as the work is optimally divided to leverage single cores (regardless of the actual number on a provider) on the golem network. the rationale is primarily that uploads are not subject to a single end-point's bandwidth, as uploads occur as several streams simultaneously in the background. this transitively applies to downloads.
+--min-cpu-threads currently would guide to more modern cpu's but will not improve timing nor compression ratio as the work is optimally divided to leverage single cores (regardless of the actual number on a provider) on the golem network. partitioning to several nodes as opposed to one with several cores is more efficient since upload streams can be simultaneous, instead of having to wait on a single stream before starting.
 
-for very large files, utilizing 2 cores may help and this will be a future optimization but is not relevant atm because 1 core is optimized for <= 64 MiB piece.
+for very large files, utilizing 2 cores may help and this will be a future optimization but is not relevant atm because 1 core is optimized for <= 64 MiB pieces (current division model).
