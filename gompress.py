@@ -127,7 +127,7 @@ async def main(
 
     # identify vm that tasked nodes are to use to process the payload/instructions
     package = await vm.repo(
-        image_hash="8680582af7665463e0c79ceadf72f8d82643b973108c4a8fc1bb65af",
+        image_hash="76aff54502e5dc2dc436923a756af889bea289b55c876835b87e02bb",
         # only run on provider nodes that have more than 1.0gb of RAM available
         min_mem_gib=1.0,  # later set this to 1.5 when 128mb divisions allowed
         # only run on provider nodes that have more than 2gb of storage space available
@@ -232,11 +232,18 @@ async def main(
                 yield script
                 result_dict = {}
                 stdout = future_result.result().stdout
-                if not stdout.startswith("OK:"):
+                if not stdout.startswith("OK"):
                     task.reject_result(retry=True)
-                    # this requires testing TODO
+                    print(f"rejected a result {stdout} and retrying")
+                    # try on deliberate rejection requires testing TODO
                 else:
-                    result_dict["checksum"] = stdout.split(":")[1][:-1]
+                    outputs = stdout.split("-")
+                    outputs = tuple(
+                        map(lambda s: s.strip(), outputs),
+                    )
+                    g_logger.debug(outputs)
+                    result_dict["checksum"] = outputs[1]
+                    result_dict["walltime"] = outputs[2]
                     result_dict["path"] = str(local_output_file.as_posix())
                     task.accept_result(result=result_dict)
             except BatchTimeoutError:
