@@ -6,7 +6,7 @@ NAMESTEM=$(basename $TARGET_FILE .xz)
 
 OUTPUT_DIR="/golem/output"
 OUTPUT_FILEPATH="$OUTPUT_DIR/$NAMESTEM.xz"
-
+MODEL=$(cat /proc/cpuinfo |grep "model name" |head -n1 | sed  -rn 's/^[^:]+:[[:space:]]([^[$]+)$/\1/p')
 shift
 ARGS="$@"
 
@@ -19,8 +19,9 @@ else
 fi
 /usr/bin/time -v -o $OUTPUT_DIR/${NAMESTEM}.tim bash -c "$CMD"
 if [[ $? == 0 ]]; then
-    echo -n "OK-$(stat -c %s $OUTPUT_FILEPATH)-"
-    cat $OUTPUT_DIR/${NAMESTEM}.tim | grep "Elapsed" | sed -En 's/(.*): (.*)$/\2/p'
+    echo -n "OK---$(stat -c %s $OUTPUT_FILEPATH)---"
+    cat $OUTPUT_DIR/${NAMESTEM}.tim | grep "Elapsed" | sed -En 's/(.*): (.*)$/\2/p' | tr -d "\n"
+    echo "---$MODEL"
 else
     echo "ERROR"
     exit 1

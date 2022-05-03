@@ -103,7 +103,7 @@ class CTX:
                 "SELECT part_count FROM OriginalFile"
             ).fetchone()[0]
 
-            g_logger.debug(f"last part count: {last_part_count}")
+            g_logger.debug(f"parts remaining: {last_part_count}")
 
             if last_part_count != self.part_count:
                 ##############################
@@ -128,7 +128,10 @@ class CTX:
         record = self.con.execute(
             f"SELECT start, end FROM Part WHERE partId = {partId}"
         ).fetchone()
-        read_range = (record[0], record[1])
+        read_range = (
+            record[0],
+            record[1],
+        )
         return read_range
 
     def view_to_temporary_file(self, partId):

@@ -127,7 +127,7 @@ async def main(
 
     # identify vm that tasked nodes are to use to process the payload/instructions
     package = await vm.repo(
-        image_hash="76aff54502e5dc2dc436923a756af889bea289b55c876835b87e02bb",
+        image_hash="8f2396e5a50c206e5eb671816f67976841007e6d759511cb552c4b3e",
         # only run on provider nodes that have more than 1.0gb of RAM available
         min_mem_gib=1.0,  # later set this to 1.5 when 128mb divisions allowed
         # only run on provider nodes that have more than 2gb of storage space available
@@ -222,9 +222,7 @@ async def main(
                 "/root/xz.sh",
                 path_to_remote_target.name,  # shell script is run from workdir, expects
                 # filename is local to workdir
-                # f"-T{task.mainctx.min_threads}",
                 f"-T1",  # in the future, for 128 parts
-                # , utilize at most 2 threads corresponding to 2 64MiB
                 f"{optimal_compression_argument}",
             )  # output is stored by same name
             # resolve to processed target
@@ -243,14 +241,17 @@ async def main(
                     print(f"rejected a result {stdout} and retrying")
                     # try on deliberate rejection requires testing TODO
                 else:
-                    outputs = stdout.split("-")
-                    outputs = tuple(
+
+                    outputs = stdout.split("---")
+                    outputs = list(
                         map(lambda s: s.strip(), outputs),
                     )
+                    model = outputs.pop(len(outputs) - 1)
                     g_logger.debug(outputs)
                     result_dict["checksum"] = outputs[1]
                     result_dict["walltime"] = walltime_to_timedelta(outputs[2])
                     result_dict["path"] = str(local_output_file.as_posix())
+                    result_dict["model"] = model
                     task.accept_result(result=result_dict)
             except BatchTimeoutError:
                 try:
@@ -263,7 +264,11 @@ async def main(
                     f"{TEXT_COLOR_DEFAULT}"
                 )
                 raise
-
+            # TODO catch activity terminated by provider..
+            except Exception as e:
+                print(f"worker experienced an unhandled exception: {e}")
+                task.reject_result(retry=True)  # testing
+                raise
             # reinitialize the script for the next task if any (partition to compress)
             script = ctx.new_script(
                 timeout=timedelta(minutes=MAX_MINUTES_UNTIL_TASK_IS_A_FAILURE)
@@ -368,15 +373,23 @@ async def main(
         async for task in completed_tasks:
             num_tasks += 1
             ctx.total_vm_run_time += task.result["walltime"]
-            original_length = ctx.lookup_partition_range(task.data)
+            g_logger.debug(task.result)
+            original_range = ctx.lookup_partition_range(task.data)
+            original_length = original_range[1] - original_range[0]
+            original_length_mib = original_length / 2**20
+            compressed_length_mib = int(task.result["checksum"]) / 2**20
             print(
                 f"{TEXT_COLOR_CYAN}"
                 f"Task computed: {task},"
-                f" original/compressed length: {original_length}/{task.result['checksum']},"
-                f" run time: {task.result['walltime']},"
-                f" task time: {task.running_time}"
+                f" {original_length_mib:,.{2}f}MiB \u2192 {compressed_length_mib:,.{2}f}MiB,"
+                f" xz: {str(task.result['walltime'])[:-4]},"
+                f" task: {str(task.running_time)[:-4]},"
+                f" on an {task.result['model']}"
                 f"{TEXT_COLOR_DEFAULT}"
             )
+            #####################################
+            # record length (checksum) in model #
+            #####################################
             ctx.con.execute(
                 "INSERT INTO Checksum(partId, hash) VALUES (?, ?)",
                 (
@@ -384,6 +397,9 @@ async def main(
                     task.result["checksum"],
                 ),
             )
+            ###########################################
+            # record path to downloaded part in model #
+            ###########################################
             ctx.con.execute(
                 "INSERT INTO OutputFile(partId, pathStr) VALUES (?, ?)",
                 (
@@ -391,6 +407,7 @@ async def main(
                     task.result["path"],
                 ),
             )
+
             ctx.con.commit()
         print(
             f"{TEXT_COLOR_CYAN}"
@@ -483,7 +500,10 @@ if __name__ == "__main__":
         ctx.concatenate_and_finalize()
         print(f"\033[32mThe total run time for xz was {ctx.total_vm_run_time}.\033[0m")
         print(
-            f"\033[1mThe compressed file is located at: {ctx.path_to_final_file}\033[0m"
+            f"The compressed file is located at: \033[1m{ctx.path_to_final_file}\033[0m"
         )
     else:
-        print("\033[1;31m;incomplete run, please re-run to finish\033[0m")
+        print(
+            "\033[1;31mincomplete run, please re-run to finish."
+            f" parts remaining: {len(ctx.list_pending_ids())}\033[0m"
+        )
