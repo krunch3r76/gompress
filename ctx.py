@@ -1,9 +1,11 @@
-from workdirectoryinfo import WorkDirectoryInfo, checksum
 import os
 import sqlite3
-from _create_connection import create_connection, _partition
 import io
 from pathlib import Path
+from datetime import timedelta
+
+from workdirectoryinfo import WorkDirectoryInfo, checksum
+from _create_connection import create_connection, _partition
 from debug.mylogging import g_logger
 
 
@@ -23,12 +25,14 @@ class CTX:
     / work_directory_info         WorkDirectoryInfo object containing information about the working dir
     / path_to_connection_file     the database containing information about the work to be done
     con                         connection to the database (path_to_connection_file)
+    total_vm_run_time           updated with cumulative vm run times
     ---------------------------
     concatenate_and_finalize()  merge downloaded parts
     list_pending_ids()          check the connection to identify any missing parts
     reset_workdir()             clear pending work, from tables, (and files if applicable)
     verify()                    ensure checksums match what was told by the provider
     view_to_temporary_file()    get a memory view of a part of the file to be worked on
+    lookup_partition_range      get the range [beg, end) for a specific division
     """
 
     def __init__(
@@ -58,6 +62,7 @@ class CTX:
         ###############################
         # assign computed properties  #
         ###############################
+        self.total_vm_run_time = timedelta()
         self.work_directory_info = WorkDirectoryInfo(
             self.path_to_local_workdir, self.path_to_target
         )
@@ -118,13 +123,22 @@ class CTX:
             )
             self.path_to_final_file.unlink()
 
-    def view_to_temporary_file(self, partId):
-        """get a memory view of a part of the file to be worked on"""
-
+    def lookup_partition_range(self, partId):
+        """get the range [beg, end) for a specific division"""
         record = self.con.execute(
             f"SELECT start, end FROM Part WHERE partId = {partId}"
         ).fetchone()
         read_range = (record[0], record[1])
+        return read_range
+
+    def view_to_temporary_file(self, partId):
+        """get a memory view of a part of the file to be worked on"""
+
+        # record = self.con.execute(
+        #     f"SELECT start, end FROM Part WHERE partId = {partId}"
+        # ).fetchone()
+        # read_range = (record[0], record[1])
+        read_range = self.lookup_partition_range(partId)
         self.target_open_file.seek(read_range[0])
         bytesIO = io.BytesIO(self.target_open_file.read(read_range[1] - read_range[0]))
         # return bytesIO.getvalue()

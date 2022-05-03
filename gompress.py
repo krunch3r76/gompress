@@ -162,6 +162,12 @@ async def main(
         based on how many divisions of 64MiB there are.
         """
 
+        def walltime_to_timedelta(walltime: str):
+            walltime_split_on_m = walltime.split("m")
+            minutes_str = walltime_split_on_m[0]
+            seconds_fract_str = walltime_split_on_m[1][:-1].strip()
+            return timedelta(minutes=int(minutes_str), seconds=float(seconds_fract_str))
+
         g_logger.debug(f"working: {ctx}")
         # Set timeout for the first script/task to be executed on the provider given
         # the task iterator
@@ -243,7 +249,7 @@ async def main(
                     )
                     g_logger.debug(outputs)
                     result_dict["checksum"] = outputs[1]
-                    result_dict["walltime"] = outputs[2]
+                    result_dict["walltime"] = walltime_to_timedelta(outputs[2])
                     result_dict["path"] = str(local_output_file.as_posix())
                     task.accept_result(result=result_dict)
             except BatchTimeoutError:
@@ -361,9 +367,14 @@ async def main(
         # i.e. the worker will retry and not return a bad one
         async for task in completed_tasks:
             num_tasks += 1
+            ctx.total_vm_run_time += task.result["walltime"]
+            original_length = ctx.lookup_partition_range(task.data)
             print(
                 f"{TEXT_COLOR_CYAN}"
-                f"Task computed: {task}, result: {task.result}, time: {task.running_time}"
+                f"Task computed: {task},"
+                f" original/compressed length: {original_length}/{task.result['checksum']},"
+                f" run time: {task.result['walltime']},"
+                f" task time: {task.running_time}"
                 f"{TEXT_COLOR_DEFAULT}"
             )
             ctx.con.execute(
@@ -470,8 +481,9 @@ if __name__ == "__main__":
         #    concatenate     #
         ######################
         ctx.concatenate_and_finalize()
+        print(f"\033[32mThe total run time for xz was {ctx.total_vm_run_time}.\033[0m")
         print(
             f"\033[1mThe compressed file is located at: {ctx.path_to_final_file}\033[0m"
         )
     else:
-        print("\033[31m;incomplete run, please re-run to finish\033[0m")
+        print("\033[1;31m;incomplete run, please re-run to finish\033[0m")
