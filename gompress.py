@@ -114,6 +114,12 @@ async def main(
     :param payment_network: provided as a cli argument
     :param show_usage: provided as a cli argument
 
+    gompress partitions the target file into lengths of 64MiB sending each as a block
+    for a distinct node to work on. min_cpu_threads may be used to select providers
+    with more modern cpu's, but does not affect compression effectiveness as a single
+    thread is utilized for each block. this model makes optimal use of memory which
+    otherwise geometrically rises per core without any additional benefit. therefore,
+    gompress essentially improves xz by requiring less memory for parallel compression.
 
     """
 
@@ -136,6 +142,22 @@ async def main(
         :param tasks: iterable to pending work
 
         a worker is associated with one and only one provider at a time via WorkContext
+        a worker that has gained access to a given node reads the range of bytes from
+        the file to compress given the part offset on the task's data property. it does
+        so via a query of the database table stored in the workdir.
+        a worker may compress the bytes in memory before uploaded as per client command
+        line arguments.
+        a remote script on the vm is invoked after the file has been uploaded to compress.
+        the worker downloads the result and places it in the local workdir.
+        the worker records the stdout to capture the checksum, which is the length of
+        the file by default. error checking is expected to occur on the transport level
+        so a successful transfer is one in which all expected bytes were received.
+        the worker then moves on to the next task (part of file needing compression) if any
+        not already assigned elsewhere.
+        a worker may disconnect from the provider if it is taking too long, as per the (global)
+        variable MAX_MINUTES_UNTIL_TASK_IS_A_FAILURE. the executor then invokes worker on
+        the next available "worker" i.e. provider. note: max workers is computed per run
+        based on how many divisions of 64MiB there are.
         """
 
         g_logger.debug(f"working: {ctx}")
@@ -275,9 +297,12 @@ async def main(
         },
     )
 
+    # if gc__filterms has been successfully imported, wrap the strategy
     if moduleFilterProviderMS:
         strategy = FilterProviderMS(strategy)
 
+    # ----------------------------------------------
+    # --------------- emitter() --------------------
     def emitter(event):
         """sniff events before they reach the SummaryLogger on Golem
 
@@ -296,6 +321,8 @@ async def main(
             except:
                 pass
 
+    # interface with the payload (package defined aboved) to partition work
+    # to providers
     async with Golem(
         budget=10.0,
         subnet_tag=subnet_tag,
@@ -305,6 +332,7 @@ async def main(
         event_consumer=yapapi.log.SummaryLogger(emitter).log,
     ) as golem:
 
+        # show client the network options being used, e.g. subnet-tag
         print_env_info(golem)
 
         num_tasks = 0
@@ -317,6 +345,11 @@ async def main(
             max_workers=ctx.part_count,
             timeout=timeout,
         )
+        # submit and asynchronous wait on the completed tasks
+        # holding a reference to the database model with partition information
+        # and update the database with the result information about the download
+        # note, all tasks that have come back are expected to not be in rejected state
+        # i.e. the worker will retry and not return a bad one
         async for task in completed_tasks:
             num_tasks += 1
             print(
@@ -395,6 +428,9 @@ if __name__ == "__main__":
     data_dir = Path("./workdir")
     data_dir.mkdir(exist_ok=True)
 
+    ################################################
+    # create object to store information about run #
+    ################################################
     ctx = CTX(
         data_dir,
         target_file,
@@ -402,6 +438,9 @@ if __name__ == "__main__":
         args.min_cpu_threads,
     )
 
+    #####################
+    #      run          #
+    #####################
     run_golem_example(
         main(
             ctx,
@@ -414,9 +453,16 @@ if __name__ == "__main__":
         log_file=args.log_file if args.enable_logging else None,
     )
 
+    #####################
+    #       verify      #
+    #####################
     if ctx.verify():
-        # concatenate output files in order of partid
+        ######################
+        #    concatenate     #
+        ######################
         ctx.concatenate_and_finalize()
-        print(f"The compressed file is located at: {ctx.path_to_final_target}")
+        print(
+            f"\033[1mThe compressed file is located at: {ctx.path_to_final_file}\033[0m"
+        )
     else:
-        print("incomplete")
+        print("\033[31m;incomplete run, please re-run to finish\033[0m")

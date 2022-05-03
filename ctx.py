@@ -9,74 +9,70 @@ from debug.mylogging import g_logger
 
 class CTX:
     """
-    path_to_rootdir                 <rootdir>
-    path_to_target                  ?
-    part_count                      n
-    work_directory_info             <rootdir>/...
-    path_to_connection_file         <rootdir>/work.db
-    con                             keeping track of work to do/done
-    target_open_file                target file as an open binary stream
-    view_to_temporary_file(...)     returns a the range of bytes corresponding to id
-    list_pending_ids()              returns a list of any id for which no part has a checksum
-    verify(...)                     checks that all parts exist and match checksums
+    an interface to the model to track/finalize workdir files and hold run parameters
+
+    ---------------------------
+    min_threads                 minimum threads we expect from a provider
+    precompression_level        0-9 (compression level of bytes in memory before upload) or -1
+    path_to_target              the file to be compressed
+    / target_open_file            file object wrapping target file
+    / name_of_final_file        the name to which the compressed result will be stored
+    / path_to_final_file        Path object to final file
+    / part_count                the total number of divisions of the target file worked on
+    path_to_local_workdir       Path to local working directory
+    / work_directory_info         WorkDirectoryInfo object containing information about the working dir
+    / path_to_connection_file     the database containing information about the work to be done
+    con                         connection to the database (path_to_connection_file)
+    ---------------------------
+    concatenate_and_finalize()  merge downloaded parts
+    list_pending_ids()          check the connection to identify any missing parts
+    reset_workdir()             clear pending work, from tables, (and files if applicable)
+    verify()                    ensure checksums match what was told by the provider
+    view_to_temporary_file()    get a memory view of a part of the file to be worked on
     """
 
     def __init__(
         self,
-        path_to_rootdir_in,
+        path_to_local_workdir_in,
         path_to_target_in,
-        # part_count_in,
-        # compression_level_in,
         precompression_level_in,
         min_threads_in,
     ):
-        """create/connect to a db relevant to inputs"""
+        """initialize the context
+
+        :param path_to_local_workdir_in:    Path to the main work directory to put/lookup work in subs
+        :param path_to_target_in:           Path to the file to compress
+        :param precompression_level_in:     level of compression to use in memory before uploading (-1 none)
+        :param min_theads_in:               minimum number of threads a provider should have to be used
+
+        """
+
+        ###############################
+        # assign input attributes     #
+        ###############################
         self.min_threads = min_threads_in
         self.precompression_level = precompression_level_in
-        # self.compression_level = compression_level_in
         self.path_to_target = path_to_target_in
-        self.target_open_file = self.path_to_target.open("rb")
-        self.path_to_rootdir = path_to_rootdir_in
-        self.part_count = len(_partition(self.path_to_target.stat().st_size, None))
+        self.path_to_local_workdir = path_to_local_workdir_in
+
+        ###############################
+        # assign computed properties  #
+        ###############################
         self.work_directory_info = WorkDirectoryInfo(
-            self.path_to_rootdir, self.path_to_target
+            self.path_to_local_workdir, self.path_to_target
         )
-        self.work_has_been_reset = False
-        # check if work.db exists in work_directory_info.path_to_target_wdir
+        self.name_of_final_file = self.path_to_target.name + ".xz"
+        self.path_to_final_file = (
+            self.work_directory_info.path_to_final_directory / self.name_of_final_file
+        )
+        self.target_open_file = self.path_to_target.open("rb")
+        self.part_count = len(_partition(self.path_to_target.stat().st_size, None))
         self.path_to_connection_file = (
             self.work_directory_info.path_to_target_wdir / "work.db"
         )
 
-        self.name_of_final_file = self.path_to_target.name + ".xz"
-        self.path_to_final_target = (
-            self.work_directory_info.path_to_final_directory / self.name_of_final_file
-        )
-        # print(f"looking for {self.path_to_final_target}")
-
-        new_connection = True
-        if self.path_to_connection_file.exists():
-            new_connection = False  # may become true by end
-            self.con = sqlite3.connect(
-                str(self.path_to_connection_file), isolation_level=None
-            )
-            # TODO: check for completeness
-            last_part_count = self.con.execute(
-                "SELECT part_count FROM OriginalFile"
-            ).fetchone()[0]
-
-            g_logger.debug(f"last part count: {last_part_count}")
-
-            if last_part_count != self.part_count:
-                g_logger.debug(
-                    f"the part count differs from the last work which was for {self.part_count}!"
-                )
-                self.con.close()
-                self.path_to_connection_file.unlink()
-                new_connection = True
-                self.work_has_been_reset = True
-
-        if new_connection:
-            # create connection
+        # --------- create_new_connection() -------------
+        def create_new_connection(self):
             g_logger.debug("creating connection")
             self.con = create_connection(
                 self.path_to_connection_file,
@@ -84,16 +80,47 @@ class CTX:
                 self.work_directory_info,
             )
 
-        if self.path_to_final_target.exists():
-            if not self.work_has_been_reset:
-                raise Exception(
-                    f"There appears to be a compressed file already for this at {self.path_to_final_target}"
+        #########################
+        # create new connection #
+        #########################
+        new_connection = None
+        if not self.path_to_connection_file.exists():
+            create_new_connection(self)
+        else:
+            ###########################
+            # use existing connection #
+            ###########################
+            new_connection = False  # may become true by end
+            self.con = sqlite3.connect(
+                str(self.path_to_connection_file), isolation_level=None
+            )
+            last_part_count = self.con.execute(
+                "SELECT part_count FROM OriginalFile"
+            ).fetchone()[0]
+
+            g_logger.debug(f"last part count: {last_part_count}")
+
+            if last_part_count != self.part_count:
+                ##############################
+                # ! overwrite bad connection #
+                ##############################
+                g_logger.debug(
+                    f"the part count differs from the last work which was for {self.part_count}!"
                 )
-            self.path_to_final_target.unlink()
-            self.work_has_been_reset = False
+                self.con.close()
+                self.path_to_connection_file.unlink()
+                new_connection = True
+                create_new_conenction(self)
+
+        if self.path_to_final_file.exists():
+            raise Exception(
+                f"There appears to be a compressed file already for this at {self.path_to_final_file}"
+            )
+            self.path_to_final_file.unlink()
 
     def view_to_temporary_file(self, partId):
-        """lookup the range on the connection and return as a BytesIO object"""
+        """get a memory view of a part of the file to be worked on"""
+
         record = self.con.execute(
             f"SELECT start, end FROM Part WHERE partId = {partId}"
         ).fetchone()
@@ -106,7 +133,8 @@ class CTX:
         )  # bytesIO is cleaned up only when view is destroyed...
 
     def list_pending_ids(self):
-        """return a list or iterable of partIds for which there is no checksum"""
+        """check the connection to identify any missing parts"""
+
         pending_id_list = self.con.execute(
             "SELECT partId FROM Part WHERE partId NOT IN (SELECT partId FROM Checksum)"
         ).fetchall()
@@ -115,8 +143,7 @@ class CTX:
         return list_of_pending_ids
 
     def verify(self):
-        """look up paths to output file and corresponding checksums and return whether
-        every file checksum matches what the provider reported"""
+        """ensure checksums match what was told by the provider"""
 
         if len(self.list_pending_ids()) != 0:
             return False  # need all parts to verify
@@ -146,11 +173,7 @@ class CTX:
         return OK
 
     def concatenate_and_finalize(self):
-        """merge all the downloaded parts in order according to their suffix
-
-        beginning with the first part append and delete subsequent parts
-        finally, rename the first part to original name of target suffixed with .xz
-        """
+        """merge downloaded parts"""
 
         recordset = self.con.execute(
             "SELECT pathStr from OutputFile ORDER BY partId"
@@ -165,11 +188,10 @@ class CTX:
                 g_logger.debug(f"concatenating {path} with {path_to_first}")
                 with open(str(path), "rb") as to_concat:
                     concat.write(to_concat.read())
-                # path.unlink()
-        path_to_first.rename(self.path_to_final_target)
-        self.reset_workdir()
+        path_to_first.rename(self.path_to_final_file)
+        self.reset_workdir(keep_final=True)
 
-    def reset_workdir(self, pending=True):
+    def reset_workdir(self, pending=True, keep_final=False):
         """clear parts and associated sql records"""
         if pending == False:
             raise Exception("pending False not implemented")
@@ -184,4 +206,6 @@ class CTX:
         self.con.execute(
             "DELETE FROM OutputFile"
         )  # no outputfile can exist now that parts are gone
-        self.work_has_been_reset = True
+        if not keep_final:
+            if self.path_to_final_file.exists():
+                self.path_to_final_file.unlink()
