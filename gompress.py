@@ -121,6 +121,8 @@ async def main(
     otherwise geometrically rises per core without any additional benefit. therefore,
     gompress essentially improves xz by requiring less memory for parallel compression.
 
+    each task is given a shared context object and a unique part number representing
+    which sequential part of the whole file it shall work on.
     """
 
     # identify vm that tasked nodes are to use to process the payload/instructions

@@ -191,10 +191,8 @@ class CTX:
         path_to_first.rename(self.path_to_final_file)
         self.reset_workdir(keep_final=True)
 
-    def reset_workdir(self, pending=True, keep_final=False):
+    def reset_workdir(self, keep_final=False):
         """clear parts and associated sql records"""
-        if pending == False:
-            raise Exception("pending False not implemented")
 
         files_recordset = self.con.execute("SELECT pathStr FROM OutputFile").fetchall()
         for path_to_output_file in [Path(row[0]) for row in files_recordset]:
