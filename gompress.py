@@ -247,19 +247,19 @@ async def main(
                         map(lambda s: s.strip(), outputs),
                     )
 
-                    #############################################
-                    # reduce consecutive spaces to single space #
-                    # https://stackoverflow.com/a/30517392      #
-                    #############################################
                     model = outputs.pop(len(outputs) - 1)
+                    ######################################################
+                    # reduce consecutive spaces in model to single space #
+                    # https://stackoverflow.com/a/30517392               #
+                    ######################################################
                     model_spaces_split = model.split(" ")
                     model_cleaned = filter(None, model_spaces_split)
                     model = " ".join(model_cleaned)
                     g_logger.debug(outputs)
 
-                    ###################################################
-                    # store relevant information in dictionary result #
-                    ###################################################
+                    ####################################################
+                    # store info from stdout into a dictionary result  #
+                    ####################################################
                     result_dict["checksum"] = outputs[1]
                     result_dict["walltime"] = walltime_to_timedelta(outputs[2])
                     result_dict["path"] = str(local_output_file.as_posix())
