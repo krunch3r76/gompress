@@ -186,7 +186,7 @@ class CTX:
                 print(f"part {record[PARTID_FIELD_OFFSET]} BAD")
                 break
             else:
-                print("OK", end="\r")
+                print("\033[32m\u2713\033]0m", end="\r")
         print("\n")
         return OK
 

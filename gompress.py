@@ -238,7 +238,7 @@ async def main(
                 stdout = future_result.result().stdout
                 if not stdout.startswith("OK"):
                     task.reject_result(retry=True)
-                    print(f"rejected a result {stdout} and retrying")
+                    print(f"\033[1mrejected a result {stdout} and retrying\033[0m")
                     # try on deliberate rejection requires testing TODO
                 else:
 
@@ -246,8 +246,20 @@ async def main(
                     outputs = list(
                         map(lambda s: s.strip(), outputs),
                     )
+
+                    #############################################
+                    # reduce consecutive spaces to single space #
+                    # https://stackoverflow.com/a/30517392      #
+                    #############################################
                     model = outputs.pop(len(outputs) - 1)
+                    model_spaces_split = model.split(" ")
+                    model_cleaned = filter(None, model_spaces_split)
+                    model = " ".join(model_cleaned)
                     g_logger.debug(outputs)
+
+                    ###################################################
+                    # store relevant information in dictionary result #
+                    ###################################################
                     result_dict["checksum"] = outputs[1]
                     result_dict["walltime"] = walltime_to_timedelta(outputs[2])
                     result_dict["path"] = str(local_output_file.as_posix())
@@ -504,11 +516,12 @@ if __name__ == "__main__":
         final_mib = ctx.len_file(target=False) / 2**20
         print(
             f"\033[0mCongratulations! The run was successful:\033[0m"
-            f" \033[4:30m{original_mib:,.{2}f}MiB \u2192 {final_mib:,.{2}f}MiB\033[0m"
+            f" \033[4:30m{original_mib:,.{2}f}MiB\033[0m \u2192"
+            f" \033[4:30m{final_mib:,.{2}f}MiB\033[0m"
         )
         print(
-            f"\033[0mThis session's cumulative run time for xz:\033[0m"
-            f" \033[4:30m{str(ctx.total_vm_run_time)[:-4]}.\033[0m"
+            f"\033[0mThis session's cumulative xz run time:\033[0m"
+            f" \033[4m{str(ctx.total_vm_run_time)[:-4]}.\033[0m"
         )
         print(
             f"\033[0mThe compressed file is located at:\033[0m"
