@@ -40,8 +40,9 @@ windows binary (check for latest): https://tukaani.org/xz/xz-5.2.5-windows.zip
 # compile xz for use on mac os x command line
 ```bash
 $ tar -xf xz-5.2.5.tar.bz2
-$ ./configure --prefix=$HOME/.local
-$ make && make install
+$ cd xz-5.2.5
+(xz-5.2.5) $ ./configure --prefix=$HOME/.local
+(xz-5.2.5) $ make && make install
 ```
 **stay tuned for support for other compressors not requiring a separate installation**
 
@@ -55,7 +56,7 @@ the partition ranges are tabulated and all intermediate work retained. *this ena
 ### ask gompress to perform light local compression first to save on file transfer (xfer), i.e. upload time, significantly via --xfer-compression-level
 
 ```bash
-$ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta myfile.raw --xfer-compression-level 1
+$ python3.9 ./gompress.py --network polygon --subnet-tag public-beta myfile.raw --xfer-compression-level 1
 ```
 
 ### clone gc__filterms into the project root directory
@@ -63,14 +64,14 @@ $ python3.9 ./gompress.py --payment-network polygon --subnet-tag public-beta myf
 ```bash
 $ export GNPROVIDER_BL=fascinated-system
 $ export FILTERMSVERBOSE=1
-$ python3.9 ./gompress.py myfilelarge.raw --payment-network polygon --subnet-tag public-beta
+$ python3.9 ./gompress.py myfilelarge.raw --network polygon --subnet-tag public-beta
 ```
 
 ## COMMENTS
-testnet nodes are not high caliber. to get extreme compression on extreme sizes consider being selective of high performance nodes on the mainnet. you may set --min-cpu-threads to a number of threads where you might expect a powerful cpu: you may find such nodes via my gc__listoffers application [1]. you may also incorporate my gc__filterms by cloning it or linking from it from the project root directory [2].
+testnet nodes are not high caliber. to get extreme compression on extreme sizes consider being selective of high performance nodes on the mainnet. you may find such nodes via my gc__listoffers application [1]. you may also incorporate my gc__filterms by cloning it or linking from it from the project root directory [2].
 
 expect gompress to evolve with golem and to become more performant accordingly e.g. with improved networking. gompress is continually being optimized within current parameters however. stay tuned.
 
---min-cpu-threads currently would guide to more modern cpu's but will not improve timing nor compression ratio as the work is optimally divided to leverage single cores (regardless of the actual number on a provider) on the golem network. partitioning to several nodes as opposed to one with several cores is more efficient since upload streams can be simultaneous, instead of having to wait on a single stream before starting.
+--min-cpu-threads currently might guide to more modern cpu's but will not improve timing nor compression ratio as the work is optimally divided to leverage single cores (regardless of the actual number on a provider) on the golem network. partitioning to several nodes as opposed to one with several cores is more efficient since upload streams can be simultaneous, instead of having to wait on a single stream before starting.
 
 for very large files, utilizing 2 cores may help and this will be a future optimization but is not relevant atm because 1 core is optimized for <= 64 MiB pieces (current division model).
