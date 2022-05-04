@@ -178,16 +178,15 @@ class CTX:
             path_to_part = Path(record[PATH_FIELD_OFFSET])
             if not path_to_part.exists():
                 OK = False
-                print(f"part {record[PARTID_FIELD_OFFSET]} NOT FOUND!")
+                print(f"\npart {record[PARTID_FIELD_OFFSET]} NOT FOUND!")
                 break
             part_hash = checksum(path_to_part)
             if part_hash != record[HASH_FIELD_OFFSET]:
                 OK = False
-                print(f"part {record[PARTID_FIELD_OFFSET]} BAD")
+                print(f"\npart {record[PARTID_FIELD_OFFSET]} BAD")
                 break
-            else:
-                print("\033[32m\u2713\033]0m", end="\r")
-        print("\n")
+        if OK:
+            print("\033[32m\u2713\033[0m")
         return OK
 
     def concatenate_and_finalize(self):
