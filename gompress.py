@@ -266,7 +266,9 @@ async def main(
                 raise
             # TODO catch activity terminated by provider..
             except Exception as e:
-                print(f"worker experienced an unhandled exception: {e}")
+                print(
+                    f"\033[1;33ma worker experienced an unhandled exception:\033[0m{e}"
+                )
                 task.reject_result(retry=True)  # testing
                 raise
             # reinitialize the script for the next task if any (partition to compress)
@@ -294,13 +296,13 @@ async def main(
     # Providers will not accept work if the timeout is outside of the [5 min, 30min] range.
     # We increase the lower bound to 6 min to account for the time needed for our file to
     # reach the providers.
-    min_timeout, max_timeout = 6, 30
+    min_timeout, max_timeout = 7, 30
     timeout = timedelta(
         minutes=max(
             min(init_overhead + len(list_pending_ids) * 2, max_timeout), min_timeout
         )
     )
-
+    print(f"\033[1;34mThe job's max timeout has been set to {timeout}\033[0m")
     # sane defaults for cpu and dur per hr
     if payment_network == "rinkeby":
         max_price_for_cpu = Decimal("inf")
@@ -498,9 +500,19 @@ if __name__ == "__main__":
         #    concatenate     #
         ######################
         ctx.concatenate_and_finalize()
-        print(f"\033[32mThe total run time for xz was {ctx.total_vm_run_time}.\033[0m")
+        original_mib = ctx.len_file(target=True) / 2**20
+        final_mib = ctx.len_file(target=False) / 2**20
         print(
-            f"The compressed file is located at: \033[1m{ctx.path_to_final_file}\033[0m"
+            f"\033[0mCongratulations! The run was successful:\033[0m"
+            f" \033[4:30m{original_mib:,.{2}f}MiB \u2192 {final_mib:,.{2}f}MiB\033[0m"
+        )
+        print(
+            f"\033[0mThis session's cumulative run time for xz:\033[0m"
+            f" \033[4:30m{str(ctx.total_vm_run_time)[:-4]}.\033[0m"
+        )
+        print(
+            f"\033[0mThe compressed file is located at:\033[0m"
+            f" \033[1;32m{ctx.path_to_final_file}\033[0m"
         )
     else:
         print(

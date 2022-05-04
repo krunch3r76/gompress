@@ -32,7 +32,8 @@ class CTX:
     reset_workdir()             clear pending work, from tables, (and files if applicable)
     verify()                    ensure checksums match what was told by the provider
     view_to_temporary_file()    get a memory view of a part of the file to be worked on
-    lookup_partition_range      get the range [beg, end) for a specific division
+    lookup_partition_range()    get the range [beg, end) for a specific division
+    len_file()                  return the size of the file {target, final}
     """
 
     def __init__(
@@ -224,3 +225,17 @@ class CTX:
         if not keep_final:
             if self.path_to_final_file.exists():
                 self.path_to_final_file.unlink()
+
+    def len_file(self, target=True):
+        """return length of target (default) or final file"""
+        filelen_rv = None
+        if target:
+            filelen_rv = self.path_to_target.stat().st_size
+        else:
+            if self.path_to_final_file.exists():
+                filelen_rv = self.path_to_final_file.stat().st_size
+            else:
+                raise Exception(
+                    "Cannot query length of final final, it does not exist!"
+                )
+        return filelen_rv
