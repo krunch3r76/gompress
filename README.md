@@ -18,6 +18,7 @@ tested on linux and windows. expected to work cross platform.
 
 https://user-images.githubusercontent.com/46289600/166632556-ee0c92d2-bb94-41f5-9625-8e964b5dc033.mp4
 
+as you can glean from the video details, most of the time is spent in uploading (then downloading the data), i.e. task time is xz time + transfer time. the task time can be easily halved using local compression (see advanced usage below). transferring large files, preferably compressed locally in memory, is more effective than using smaller parts because compression effectiveness is maximized on 64MiB segments...
 
 ## SELF DEMO
 ```bash
