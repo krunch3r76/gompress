@@ -16,9 +16,8 @@ tested on linux and windows. expected to work cross platform.
 
 ## VIDEO DEMO
 
-https://user-images.githubusercontent.com/46289600/164893401-08b878db-b068-4925-bb3d-49a0b099cc28.mp4
+https://user-images.githubusercontent.com/46289600/166632556-ee0c92d2-bb94-41f5-9625-8e964b5dc033.mp4
 
-note that this video is from an early version of gompress that required a --target argument on the command line, whereas target is whatever is given instead of an option. additionally, gompress now partitions a file into 64MiB pieces or one if less than or equal.
 
 ## SELF DEMO
 ```bash
