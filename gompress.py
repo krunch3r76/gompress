@@ -314,7 +314,7 @@ async def main(
             min(init_overhead + len(list_pending_ids) * 2, max_timeout), min_timeout
         )
     )
-    print(f"\033[1;34mThe job's max timeout has been set to {timeout}\033[0m")
+    print(f"{TEXT_COLOR_CYAN}The job's max timeout has been set to {timeout}{TEXT_COLOR_DEFAULT}")
     # sane defaults for cpu and dur per hr
     if payment_network == "rinkeby":
         max_price_for_cpu = Decimal("inf")
@@ -516,16 +516,16 @@ if __name__ == "__main__":
         final_mib = ctx.len_file(target=False) / 2**20
         print(
             f"\033[0mCongratulations! The run was successful:\033[0m"
-            f" \033[4:30m{original_mib:,.{2}f}MiB\033[0m \u2192"
-            f" \033[4:30m{final_mib:,.{2}f}MiB\033[0m"
+            f" {original_mib:,.{2}f}MiB \u2192"
+            f" {final_mib:,.{2}f}MiB"
         )
         print(
-            f"\033[0mThis session's cumulative xz run time:\033[0m"
-            f" \033[4m{str(ctx.total_vm_run_time)[:-4]}.\033[0m"
+            f"xz cumulative run time:"
+            f" {str(ctx.total_vm_run_time)[:-4]}."
         )
         print(
-            f"\033[0mThe compressed file is located at:\033[0m"
-            f" \033[1;32m{ctx.path_to_final_file}\033[0m"
+            f"The compressed file is located at:"
+            f" \033[42;37m{ctx.path_to_final_file}\033[0m"
         )
     else:
         print(

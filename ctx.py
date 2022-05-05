@@ -116,11 +116,11 @@ class CTX:
                 self.con.close()
                 self.path_to_connection_file.unlink()
                 new_connection = True
-                create_new_conenction(self)
+                create_new_connection(self)
 
         if self.path_to_final_file.exists():
             raise Exception(
-                f"There appears to be a compressed file already for this at {self.path_to_final_file}"
+                f"There appears to be a compressed file already for this at \033[42;37m{self.path_to_final_file}"
             )
             self.path_to_final_file.unlink()
 
