@@ -20,9 +20,9 @@ def _partition(total, maxsize=None):
     return rv
 
 
-def _partitionRanges(target_length):
+def _partitionRanges(target_length, maxsize=None):
     # lengths = _partition(target_length, part_count)
-    offsets = _partition(target_length)
+    offsets = _partition(target_length, maxsize)
     g_logger.debug(offsets)
     ranges = [
         (
@@ -43,7 +43,7 @@ def _partitionRanges(target_length):
 def _populate_connection(con, target_length, workDirectoryInfo):
     """build meta details and add to database"""
 
-    ranges = _partitionRanges(target_length)
+    ranges = _partitionRanges(target_length, None)
 
     con.execute(
         """

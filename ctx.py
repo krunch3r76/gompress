@@ -17,7 +17,7 @@ class CTX:
     min_threads                 minimum threads we expect from a provider
     precompression_level        0-9 (compression level of bytes in memory before upload) or -1
     path_to_target              the file to be compressed
-    / target_open_file            file object wrapping target file
+    / target_open_file          file object wrapping target file
     / name_of_final_file        the name to which the compressed result will be stored
     / path_to_final_file        Path object to final file
     / part_count                the total number of divisions of the target file worked on
@@ -26,6 +26,7 @@ class CTX:
     / path_to_connection_file     the database containing information about the work to be done
     con                         connection to the database (path_to_connection_file)
     total_vm_run_time           updated with cumulative vm run times
+    / whether_resuming          indicates whether the session is a continuation of a previous
     ---------------------------
     concatenate_and_finalize()  merge downloaded parts
     list_pending_ids()          check the connection to identify any missing parts
@@ -51,7 +52,7 @@ class CTX:
         :param min_theads_in:               minimum number of threads a provider should have to be used
 
         """
-
+        self.whether_resuming = False
         ###############################
         # assign input attributes     #
         ###############################
@@ -105,6 +106,7 @@ class CTX:
             ).fetchone()[0]
 
             g_logger.debug(f"parts remaining: {last_part_count}")
+            self.whether_resuming = bool(last_part_count > 0)
 
             if last_part_count != self.part_count:
                 ##############################
@@ -120,7 +122,7 @@ class CTX:
 
         if self.path_to_final_file.exists():
             raise Exception(
-                f"There appears to be a compressed file already for this at \033[42;37m{self.path_to_final_file}"
+                f"There appears to be a compressed file already for this at \033[42;37m{self.path_to_final_file}\033[0m"
             )
             self.path_to_final_file.unlink()
 
@@ -173,8 +175,10 @@ class CTX:
         PATH_FIELD_OFFSET = 0
         HASH_FIELD_OFFSET = 1
         PARTID_FIELD_OFFSET = 2
-        for record in recordset:
-            print(f"verifying part 1 thru {record[PARTID_FIELD_OFFSET]}...", end="")
+        verify_statement = ""
+        for i, record in enumerate(recordset, 1):
+            verify_statement = f"verifying part {i} of {record[PARTID_FIELD_OFFSET]}..."
+            print(verify_statement, end="\r")
             path_to_part = Path(record[PATH_FIELD_OFFSET])
             if not path_to_part.exists():
                 OK = False
@@ -186,7 +190,7 @@ class CTX:
                 print(f"\npart {record[PARTID_FIELD_OFFSET]} BAD")
                 break
         if OK:
-            print("\033[32m\u2713\033[0m")
+            print(f"{verify_statement}\033[32m\u2713\033[0m")
         return OK
 
     def concatenate_and_finalize(self):

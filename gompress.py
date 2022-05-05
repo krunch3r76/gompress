@@ -11,8 +11,13 @@ the requestor agent provisioning segments of a file for providers on the network
 
 MAX_PRICE_CPU_HR = "0.019"
 MAX_PRICE_DUR_HR = "0.0"
-MAX_MINUTES_UNTIL_TASK_IS_A_FAILURE = 15
+START_PRICE = "0.0"
+
 from datetime import datetime, timedelta
+
+MAX_MINUTES_UNTIL_TASK_IS_A_FAILURE = 5
+MAX_TIMEOUT_FOR_TASK = timedelta(minutes=MAX_MINUTES_UNTIL_TASK_IS_A_FAILURE)
+
 import pathlib
 import sys
 from pathlib import Path, PurePosixPath
@@ -45,6 +50,10 @@ from tempfile import gettempdir
 
 from workdirectoryinfo import WorkDirectoryInfo
 from ctx import CTX
+
+import random
+
+random.seed()
 
 try:
     moduleFilterProviderMS = False
@@ -171,9 +180,8 @@ async def main(
         g_logger.debug(f"working: {ctx}")
         # Set timeout for the first script/task to be executed on the provider given
         # the task iterator
-        script = ctx.new_script(
-            timeout=timedelta(minutes=MAX_MINUTES_UNTIL_TASK_IS_A_FAILURE)
-        )
+        # this can probably be moved to the head of async for below so as to not repeat it at loop end
+        script = ctx.new_script(timeout=MAX_TIMEOUT_FOR_TASK)
 
         async for task in tasks:
             partId = task.data  # subclassed Task with id attribute
@@ -308,13 +316,12 @@ async def main(
     # Providers will not accept work if the timeout is outside of the [5 min, 30min] range.
     # We increase the lower bound to 6 min to account for the time needed for our file to
     # reach the providers.
-    min_timeout, max_timeout = 7, 30
+    min_timeout, max_timeout = 10, 30
     timeout = timedelta(
         minutes=max(
             min(init_overhead + len(list_pending_ids) * 2, max_timeout), min_timeout
         )
     )
-    print(f"{TEXT_COLOR_CYAN}The job's max timeout has been set to {timeout}{TEXT_COLOR_DEFAULT}")
     # sane defaults for cpu and dur per hr
     if payment_network == "rinkeby":
         max_price_for_cpu = Decimal("inf")
@@ -324,7 +331,7 @@ async def main(
         max_price_for_dur = Decimal(MAX_PRICE_DUR_HR)
 
     strategy = yapapi.strategy.LeastExpensiveLinearPayuMS(
-        max_fixed_price=Decimal("0.00"),
+        max_fixed_price=Decimal(START_PRICE),
         max_price_for={
             yapapi.props.com.Counter.CPU: max_price_for_cpu / Decimal("3600.0"),
             yapapi.props.com.Counter.TIME: max_price_for_dur / Decimal("3600.0"),
@@ -368,6 +375,31 @@ async def main(
 
         # show client the network options being used, e.g. subnet-tag
         print_env_info(golem)
+
+        print(
+            f"Using max cpu/hr: \033[1;33m{MAX_PRICE_CPU_HR}\033[0m;"
+            f" max duration/hr: \033[1;33m{MAX_PRICE_DUR_HR}\033[0m;"
+            f" and fixed start rate: \033[1;33m{START_PRICE}\033[0m"
+            f" {'t' if payment_network == 'rinkeby' else ''}GLM"
+        )
+
+        print(f"The job's max timeout has been set to {timeout}")
+        print(f"A task will be retried after a timeout of {MAX_TIMEOUT_FOR_TASK}\n")
+
+        if ctx.whether_resuming:
+            pendingCount = len(ctx.list_pending_ids())
+            print(
+                f"\033[1mResuming an earlier session to compress `{ctx.path_to_target.name}` of which"
+                f" {pendingCount} part{'s' if pendingCount > 1 else ''}"
+                f" remain{'' if pendingCount > 1 else 's'} out of {ctx.part_count}.\033[0m"
+            )
+        else:
+            print(
+                "\033[1m"
+                f"Beginning new session and compressing `{ctx.path_to_target.name}`"
+                f" in {ctx.part_count} task parts."
+                "\033[0m"
+            )
 
         num_tasks = 0
         start_time = datetime.now()
@@ -512,23 +544,44 @@ if __name__ == "__main__":
         #    concatenate     #
         ######################
         ctx.concatenate_and_finalize()
+
+        #################
+        #    report     #
+        #################
         original_mib = ctx.len_file(target=True) / 2**20
         final_mib = ctx.len_file(target=False) / 2**20
+
+        def exclamation():
+            exclamations = ["wow!", "wowowowowow!", "w0w!", "w0w0w0w0w0w0w!"]
+            return random.choice(exclamations)
+
         print(
-            f"\033[0mCongratulations! The run was successful:\033[0m"
-            f" {original_mib:,.{2}f}MiB \u2192"
-            f" {final_mib:,.{2}f}MiB"
+            f"The run was a success! \033[1m{ctx.path_to_target.name}\033[0m has been compressed"
+            f" to {final_mib:,.{2}f}MiB from {original_mib:,.{2}f}MiB",
+            end="",
         )
+        if final_mib / original_mib < 0.330001:
+            print(",", exclamation())
+        else:
+            print(".")
+
+        if not ctx.whether_resuming:
+            print(
+                f"The time spent on compressing the data with xz was clocked at"
+                f" {str(ctx.total_vm_run_time)[:-4]}."
+            )
         print(
-            f"xz cumulative run time:"
-            f" {str(ctx.total_vm_run_time)[:-4]}."
-        )
-        print(
-            f"The compressed file is located at:"
-            f" \033[42;37m{ctx.path_to_final_file}\033[0m"
+            f"You can find the compressed file at"
+            f" \033[1;33m{ctx.path_to_final_file}\033[0m"
         )
     else:
+        countPending = len(ctx.list_pending_ids())
         print(
-            "\033[1;31mincomplete run, please re-run to finish."
-            f" parts remaining: {len(ctx.list_pending_ids())}\033[0m"
+            f"\033[1;31mthe run did not finish, please re-run to compress the"
+            f" remaining {countPending} part{'s' if countPending > 1 else ''}.\033[0m"
+        )
+        print(
+            "\033[1m"
+            "As always, on behalf on the golem community, thank you for your participation"
+            "\033[0m"
         )
