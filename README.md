@@ -21,10 +21,12 @@ https://user-images.githubusercontent.com/46289600/166870523-9f7c6ca2-536d-4c0e-
 
 
 ## SELF DEMO
+This self demo uses tGLM nodes on public-beta, which tend to be better compatible with non-development versions.
 ```bash
 (gompress) $ wget http://aleph.gutenberg.org/ls-lR # alternatively, download with your browser
 (gompress) $ md5sum ls-lR # note this for later
-(gompress) $ python3.9 gompress.py ls-lR
+(gompress) $ yagna payment init --sender --network rinkeby
+(gompress) $ python3.9 gompress.py ls-lR --subnet-tag public-beta --network rinkeby
 (gompress) $ cd workdir/hashvaluefromoutput/final
 (gompress final) $ xz -d ls-lR.xz
 (gompress final) $ md5sum ls-lR # compare with earlier
