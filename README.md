@@ -16,9 +16,9 @@ tested on linux and windows. expected to work cross platform.
 
 ## VIDEO DEMO
 
-https://user-images.githubusercontent.com/46289600/166632556-ee0c92d2-bb94-41f5-9625-8e964b5dc033.mp4
 
-as you can glean from the video details, most of the time is spent in uploading (then downloading the data), i.e. task time is xz time + transfer time. the task time can be easily halved using local compression (see advanced usage below). transferring large files, preferably compressed locally in memory as just suggested, is more effective than using smaller parts because compression effectiveness is maximized on 64MiB segments; hence, worth the wait.
+https://user-images.githubusercontent.com/46289600/166870523-9f7c6ca2-536d-4c0e-927b-486fdce9c240.mp4
+
 
 ## SELF DEMO
 ```bash
@@ -68,7 +68,7 @@ $ python3.9 ./gompress.py myfilelarge.raw --network polygon --subnet-tag public-
 ```
 
 ## COMMENTS
-testnet nodes are not high caliber. to get extreme compression on extreme sizes consider being selective of high performance nodes on the mainnet. you may find such nodes via my gc__listoffers application [1]. you may also incorporate my gc__filterms by cloning it or linking from it from the project root directory [2].
+to get extreme compression on extreme sizes consider being selective of high performance nodes on the mainnet. you may find such nodes via my gc__listoffers application [1]. you may also incorporate my gc__filterms by cloning it or linking from it from the project root directory [2].
 
 expect gompress to evolve with golem and to become more performant accordingly e.g. with improved networking. gompress is continually being optimized within current parameters however. stay tuned.
 
