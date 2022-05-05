@@ -376,12 +376,13 @@ async def main(
         # show client the network options being used, e.g. subnet-tag
         print_env_info(golem)
 
-        print(
-            f"Using max cpu/hr: \033[1;33m{MAX_PRICE_CPU_HR}\033[0m;"
-            f" max duration/hr: \033[1;33m{MAX_PRICE_DUR_HR}\033[0m;"
-            f" and fixed start rate: \033[1;33m{START_PRICE}\033[0m"
-            f" {'t' if payment_network == 'rinkeby' else ''}GLM"
-        )
+        if payment_network != "rinkeby":
+            print(
+                f"Using max cpu/hr: \033[1;33m{MAX_PRICE_CPU_HR}\033[0m;"
+                f" max duration/hr: \033[1;33m{MAX_PRICE_DUR_HR}\033[0m;"
+                f" and fixed start rate: \033[1;33m{START_PRICE}\033[0m"
+                f" {'t' if payment_network == 'rinkeby' else ''}\033[1mGLM\033[0m"
+            )
 
         print(f"The job's max timeout has been set to {timeout}")
         print(f"A task will be retried after a timeout of {MAX_TIMEOUT_FOR_TASK}\n")
