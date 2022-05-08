@@ -7,7 +7,9 @@ from datetime import timedelta
 from workdirectoryinfo import WorkDirectoryInfo, checksum
 from _create_connection import create_connection, _partition
 from debug.mylogging import g_logger
+from gs.playsound import play_sound
 
+projectdir = Path(__file__).parent
 
 class CTX:
     """
@@ -122,6 +124,9 @@ class CTX:
             self.whether_resuming = bool(downloaded_parts_count > 0)
 
         if self.path_to_final_file.exists():
+            path_to_sound_file = Path(projectdir / "gs"/ "256543__debsound__r2d2-astro-droid.wav")
+            play_sound(path_to_sound_file, sleeptime=1)
+
             print(f"There appears to be a compressed file already for this at \033[42;37m{self.path_to_final_file}\033[0m")
             reply=input("Would you like to have it deleted/overwritten? Enter 'yes' if so: ")
             if reply != 'yes':

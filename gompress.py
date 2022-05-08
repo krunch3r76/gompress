@@ -23,8 +23,11 @@ import sys
 from pathlib import Path, PurePosixPath
 from decimal import Decimal
 from lzma import LZMACompressor
+import random
 
-from debug.mylogging import g_logger
+random.seed()
+from tempfile import gettempdir
+
 import yapapi
 from yapapi import (
     Golem,
@@ -45,15 +48,11 @@ from utils import (
     run_golem_example,
     print_env_info,
 )
-
-from tempfile import gettempdir
+from debug.mylogging import g_logger
 
 from workdirectoryinfo import WorkDirectoryInfo
 from ctx import CTX
-
-import random
-
-random.seed()
+from gs.playsound import play_sound
 
 try:
     moduleFilterProviderMS = False
@@ -62,6 +61,9 @@ except ModuleNotFoundError:
     pass
 else:
     moduleFilterProviderMS = True
+
+
+projectdir = Path(__file__).parent
 
 
 class MyTask(Task):
@@ -373,6 +375,10 @@ async def main(
         event_consumer=yapapi.log.SummaryLogger(emitter).log,
     ) as golem:
 
+        path_to_sound_file = Path(
+            projectdir / "gs" / "496703__dj-somar__chord-2-dj-somar.wav"
+        )
+        # play_sound(path_to_sound_file)
         # show client the network options being used, e.g. subnet-tag
         print_env_info(golem)
 
@@ -555,6 +561,11 @@ if __name__ == "__main__":
         def exclamation():
             exclamations = ["wow!", "wowowowowow!", "w0w!", "w0w0w0w0w0w0w!"]
             return random.choice(exclamations)
+
+        path_to_sound_file = Path(
+            projectdir / "gs" / "496702__dj-somar__chord-1-dj-somar.wav"
+        )
+        ssp = play_sound(path_to_sound_file)
 
         print(
             f"The run was a success! \033[1m{ctx.path_to_target.name}\033[0m has been compressed"
