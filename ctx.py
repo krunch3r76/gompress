@@ -104,9 +104,7 @@ class CTX:
             last_part_count = self.con.execute(
                 "SELECT part_count FROM OriginalFile"
             ).fetchone()[0]
-
             g_logger.debug(f"parts remaining: {last_part_count}")
-            self.whether_resuming = bool(last_part_count > 0)
 
             if last_part_count != self.part_count:
                 ##############################
@@ -120,10 +118,16 @@ class CTX:
                 new_connection = True
                 create_new_connection(self)
 
+            downloaded_parts_count = self.con.execute("SELECT COUNT(*) FROM OutputFile").fetchone()[0]
+            self.whether_resuming = bool(downloaded_parts_count > 0)
+
         if self.path_to_final_file.exists():
-            raise Exception(
-                f"There appears to be a compressed file already for this at \033[42;37m{self.path_to_final_file}\033[0m"
-            )
+            print(f"There appears to be a compressed file already for this at \033[42;37m{self.path_to_final_file}\033[0m")
+            reply=input("Would you like to have it deleted/overwritten? Enter 'yes' if so: ")
+            if reply != 'yes':
+                import sys
+                sys.exit(1)
+
             self.path_to_final_file.unlink()
 
     def lookup_partition_range(self, partId):
