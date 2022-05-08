@@ -4,7 +4,7 @@ from debug.mylogging import g_logger
 # maxcount being deprecated
 def _partition(total, maxsize=None):
     """return an array of end lengths measuring maxsize evenly
-    at least n-1 times"""
+    at least n-1 times adding the remainder as the last element"""
     if maxsize == None:
         maxsize = 64 * 2**20
     rv = []
@@ -16,6 +16,7 @@ def _partition(total, maxsize=None):
             rv.append(maxsize * (i + 1))
         extra = total % maxsize
         if extra != 0:
+            # rv[-1]+=extra
             rv.append(rv[-1] + extra)
     return rv
 
