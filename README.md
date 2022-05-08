@@ -7,12 +7,14 @@ at last, you can stop daydreaming on company time while waiting for a compressio
 
 currently, gompress compresses a single file (which itself may be an uncompressed archive) but collecting and archiving multiple files is a solution being explored. stay tuned.
 
+curious how golem's nodes can work for you? visit https://golem.network to learn
+
 ## REQUIREMENTS
 - yapapi 0.9.1
 - a golem requestor installation with yagna client running and app-key exported etc
 - python 3.8-3.9
 
-tested on linux and windows. expected to work cross platform.
+tested on linux, windows, and mac os
 
 ## VIDEO DEMO
 
@@ -21,7 +23,7 @@ https://user-images.githubusercontent.com/46289600/166870523-9f7c6ca2-536d-4c0e-
 
 
 ## SELF DEMO
-This self demo uses tGLM nodes on public-beta, which tend to be better compatible with non-development versions.
+NOTE: This self demo uses tGLM nodes on public-beta, which tend to be better compatible with non-development versions.
 ```bash
 (gompress) $ wget http://aleph.gutenberg.org/ls-lR # alternatively, download with your browser
 (gompress) $ md5sum ls-lR # note this for later
