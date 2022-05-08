@@ -105,6 +105,9 @@ def run_golem_example(example_main, log_file=None):
             f"See {handbook_url} on how to initialize payment accounts for a requestor node."
             f"{TEXT_COLOR_DEFAULT}"
         )
+        import sys
+
+        sys.exit(1)
     except KeyboardInterrupt:
         print(
             f"{TEXT_COLOR_YELLOW}"

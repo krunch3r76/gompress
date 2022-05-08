@@ -2,11 +2,15 @@ import platform
 from multiprocessing import Process
 import subprocess
 import time
+
 if platform.system() == "Windows":
     import winsound
+
 ssp = None
+
+
 def play_sound(path_to_sound_file, sleeptime=0):
-    print(path_to_sound_file)
+    global ssp
     if platform.system() == "Windows":
         ssp = Process(
             target=winsound.PlaySound,
@@ -16,16 +20,30 @@ def play_sound(path_to_sound_file, sleeptime=0):
         ssp.start()
         time.sleep(sleeptime)
     elif platform.system() == "Linux":
+
+        if ssp != None:
+            try:
+                ssp.terminate()
+            except:
+                pass
+            finally:
+                ssp = None
         ssp = subprocess.Popen(
             ["aplay", str(path_to_sound_file)],
-            # ["aplay", "gs/transformers.wav"],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
     elif platform.system() == "Darwin":
+        if ssp != None:
+            try:
+                ssp.terminate()
+            except:
+                pass
+            finally:
+                ssp = None
         ssp = subprocess.Popen(
             ["afplay", str(path_to_sound_file)],
-            # ["afplay", "gs/transformers.wav"],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
+    return ssp
