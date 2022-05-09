@@ -11,6 +11,7 @@ from gs.playsound import play_sound
 
 projectdir = Path(__file__).parent
 
+
 class CTX:
     """an interface to the model to track/finalize workdir files and hold run parameters
 
@@ -59,7 +60,6 @@ class CTX:
 
         """
 
-
         self.whether_resuming = False
         ###############################
         # assign input attributes     #
@@ -89,8 +89,12 @@ class CTX:
         ###############################
         # update history connection   #
         ###############################
-        self.hx_con = sqlite3.connect(str(path_to_history_connection), isolation_level=None)
-        self.hx_con.execute("CREATE TABLE IF NOT EXISTS lastrun (completed_time DATETIME)")
+        self.hx_con = sqlite3.connect(
+            str(path_to_history_connection), isolation_level=None
+        )
+        self.hx_con.execute(
+            "CREATE TABLE IF NOT EXISTS lastrun (completed_time DATETIME)"
+        )
 
         # --------- create_new_connection() -------------
         def create_new_connection(self):
@@ -132,17 +136,27 @@ class CTX:
                 new_connection = True
                 create_new_connection(self)
 
-            downloaded_parts_count = self.con.execute("SELECT COUNT(*) FROM OutputFile").fetchone()[0]
+            downloaded_parts_count = self.con.execute(
+                "SELECT COUNT(*) FROM OutputFile"
+            ).fetchone()[0]
             self.whether_resuming = bool(downloaded_parts_count > 0)
 
         if self.path_to_final_file.exists():
-            path_to_sound_file = Path(projectdir / "gs"/ "256543__debsound__r2d2-astro-droid.wav")
+            path_to_sound_file = Path(
+                projectdir / "gs" / "256543__debsound__r2d2-astro-droid.wav"
+            )
             play_sound(path_to_sound_file, sleeptime=1)
 
-            print(f"There appears to be a compressed file already for this at \033[42;37m{self.path_to_final_file}\033[0;0m", end="\n")
-            reply=input("Would you like to have it deleted/overwritten? Enter 'yes' if so: ")
-            if reply != 'yes':
+            print(
+                f"There appears to be a compressed file already for this at \033[42;37m{self.path_to_final_file}\033[0;0m",
+                end="\n",
+            )
+            reply = input(
+                "Would you like to have it deleted/overwritten? Enter 'yes' if so: "
+            )
+            if reply != "yes":
                 import sys
+
                 sys.exit(1)
 
             self.path_to_final_file.unlink()
@@ -265,29 +279,30 @@ class CTX:
         return filelen_rv
 
     def update_last_run(self):
-        """insert or update the current timestamp on the history database and return if a day has passed.
-
-        """
+        """insert or update the current timestamp on the history database and return if a day has passed."""
         #####################
         # fetch last entry  #
         #####################
         import datetime
+
         day_has_passed = False
         row = self.hx_con.execute("SELECT completed_time FROM lastrun").fetchone()
         if row == None:
-            self.hx_con.execute("INSERT INTO lastrun (completed_time) VALUES (?)", (datetime.datetime.now(),) )
+            self.hx_con.execute(
+                "INSERT INTO lastrun (completed_time) VALUES (?)",
+                (datetime.datetime.now(),),
+            )
             day_has_passed = True
         else:
-           dt = datetime.datetime.fromisoformat(row[0])
-           delta = datetime.datetime.now() - dt
-           delta_total_seconds = delta.total_seconds()
-           k_seconds_in_a_day = 60*60*24
-           # debug
-           k_seconds_in_a_day=1
-           # /debug
-           if delta_total_seconds > k_seconds_in_a_day:
-               self.hx_con.execute("UPDATE lastrun SET completed_time = (?)", (datetime.datetime.now(),) )
-               day_has_passed = True
+            dt = datetime.datetime.fromisoformat(row[0])
+            delta = datetime.datetime.now() - dt
+            delta_total_seconds = delta.total_seconds()
+            k_seconds_in_a_day = 60 * 60 * 24
+            if delta_total_seconds > k_seconds_in_a_day:
+                self.hx_con.execute(
+                    "UPDATE lastrun SET completed_time = (?)",
+                    (datetime.datetime.now(),),
+                )
+                day_has_passed = True
 
         return day_has_passed
-
