@@ -12,8 +12,7 @@ from gs.playsound import play_sound
 projectdir = Path(__file__).parent
 
 class CTX:
-    """
-    an interface to the model to track/finalize workdir files and hold run parameters
+    """an interface to the model to track/finalize workdir files and hold run parameters
 
     ---------------------------
     min_threads                 minimum threads we expect from a provider
@@ -24,8 +23,8 @@ class CTX:
     / path_to_final_file        Path object to final file
     / part_count                the total number of divisions of the target file worked on
     path_to_local_workdir       Path to local working directory
-    / work_directory_info         WorkDirectoryInfo object containing information about the working dir
-    / path_to_connection_file     the database containing information about the work to be done
+    / work_directory_info       WorkDirectoryInfo object containing information about the working (sub)dir
+    / path_to_connection_file   the database containing information about the work to be done
     con                         connection to the database (path_to_connection_file)
     total_vm_run_time           updated with cumulative vm run times
     / whether_resuming          indicates whether the session is a continuation of a previous
@@ -48,12 +47,17 @@ class CTX:
     ):
         """initialize the context
 
+        Pre:
+            path_to_local_workdir_in is an existing path
+
         :param path_to_local_workdir_in:    Path to the main work directory to put/lookup work in subs
         :param path_to_target_in:           Path to the file to compress
         :param precompression_level_in:     level of compression to use in memory before uploading (-1 none)
         :param min_theads_in:               minimum number of threads a provider should have to be used
 
         """
+
+
         self.whether_resuming = False
         ###############################
         # assign input attributes     #
@@ -79,6 +83,12 @@ class CTX:
         self.path_to_connection_file = (
             self.work_directory_info.path_to_target_wdir / "work.db"
         )
+        self.path_to_history_connection = self.path_to_local_workdir / "history.db"
+        ###############################
+        # update history connection   #
+        ###############################
+        self.hx_con = sqlite3.connect(str(self.path_to_history_connection), isolation_level=None)
+        self.hx_con.execute("CREATE TABLE IF NOT EXISTS lastrun (unixtime DATETIME)")
 
         # --------- create_new_connection() -------------
         def create_new_connection(self):
@@ -127,7 +137,7 @@ class CTX:
             path_to_sound_file = Path(projectdir / "gs"/ "256543__debsound__r2d2-astro-droid.wav")
             play_sound(path_to_sound_file, sleeptime=1)
 
-            print(f"There appears to be a compressed file already for this at \033[42;37m{self.path_to_final_file}\033[0m")
+            print(f"There appears to be a compressed file already for this at \033[42;37m{self.path_to_final_file}\033[0;0m", end="\n")
             reply=input("Would you like to have it deleted/overwritten? Enter 'yes' if so: ")
             if reply != 'yes':
                 import sys
