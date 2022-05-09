@@ -7,12 +7,14 @@ at last, you can stop daydreaming on company time while waiting for a compressio
 
 currently, gompress compresses a single file (which itself may be an uncompressed archive) but collecting and archiving multiple files is a solution being explored. stay tuned.
 
+curious how golem's nodes can work for you? visit https://golem.network to learn
+
 ## REQUIREMENTS
 - yapapi 0.9.1
 - a golem requestor installation with yagna client running and app-key exported etc
 - python 3.8-3.9
 
-tested on linux and windows. expected to work cross platform.
+tested on linux, windows, and mac os
 
 ## VIDEO DEMO
 
@@ -21,7 +23,7 @@ https://user-images.githubusercontent.com/46289600/166870523-9f7c6ca2-536d-4c0e-
 
 
 ## SELF DEMO
-This self demo uses tGLM nodes on public-beta, which tend to be better compatible with non-development versions.
+NOTE: This self demo uses tGLM nodes on public-beta, which tend to be better compatible with non-development versions.
 ```bash
 (gompress) $ wget http://aleph.gutenberg.org/ls-lR # alternatively, download with your browser
 (gompress) $ md5sum ls-lR # note this for later
@@ -58,7 +60,7 @@ the partition ranges are tabulated and all intermediate work retained. *this ena
 ### ask gompress to perform light local compression first to save on file transfer (xfer), i.e. upload time, significantly via --xfer-compression-level
 
 ```bash
-$ python3.9 ./gompress.py --network polygon --subnet-tag public-beta myfile.raw --xfer-compression-level 1
+$ python3.9 ./gompress.py --network polygon --subnet-tag public-beta  --xfer-compression-level 1 myfile.raw
 ```
 
 ### clone gc__filterms into the project root directory
@@ -76,4 +78,4 @@ expect gompress to evolve with golem and to become more performant accordingly e
 
 --min-cpu-threads currently might guide to more modern cpu's but will not improve timing nor compression ratio as the work is optimally divided to leverage single cores (regardless of the actual number on a provider) on the golem network. partitioning to several nodes as opposed to one with several cores is more efficient since upload streams can be simultaneous, instead of having to wait on a single stream before starting.
 
-for very large files, utilizing 2 cores may help and this will be a future optimization but is not relevant atm because 1 core is optimized for <= 64 MiB pieces (current division model).
+for very large files, utilizing 2 cores may help and this will be a future optimization but is not relevant atm because 1 core is optimized for ≤ 64 MiB pieces (current division model).
