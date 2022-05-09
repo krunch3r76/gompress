@@ -511,6 +511,11 @@ def add_arguments_to_command_line_parser():
 if __name__ == "__main__":
     # now = datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
     # parser.set_defaults(log_file=f"gompress-{now}.log")
+    import os
+    if not os.environ.get('YAGNA_APPKEY', None):
+        print("whoa, hold on a minute, you haven't set YAGNA_APPKEY environment variable."
+                " you can't run a requestor app without it!")
+        sys.exit(1)
 
     parser = add_arguments_to_command_line_parser()
     args = parser.parse_args()
