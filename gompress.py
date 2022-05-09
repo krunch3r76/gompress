@@ -570,7 +570,10 @@ if __name__ == "__main__":
         path_to_sound_file = Path(
             projectdir / "gs" / "496702__dj-somar__chord-1-dj-somar.wav"
         )
-        ssp = play_sound(path_to_sound_file)
+
+        day_has_passed = ctx.update_last_run()
+        if day_has_passed:
+            ssp = play_sound(path_to_sound_file)
 
         print(
             f"The run was a success! \033[1m{ctx.path_to_target.name}\033[0m has been compressed"

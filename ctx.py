@@ -28,6 +28,7 @@ class CTX:
     con                         connection to the database (path_to_connection_file)
     total_vm_run_time           updated with cumulative vm run times
     / whether_resuming          indicates whether the session is a continuation of a previous
+    hx_con                      connection to history database
     ---------------------------
     concatenate_and_finalize()  merge downloaded parts
     list_pending_ids()          check the connection to identify any missing parts
@@ -36,6 +37,7 @@ class CTX:
     view_to_temporary_file()    get a memory view of a part of the file to be worked on
     lookup_partition_range()    get the range [beg, end) for a specific division
     len_file()                  return the size of the file {target, final}
+    update_last_run()           timestamps the last run (after a set interval)
     """
 
     def __init__(
@@ -83,12 +85,12 @@ class CTX:
         self.path_to_connection_file = (
             self.work_directory_info.path_to_target_wdir / "work.db"
         )
-        self.path_to_history_connection = self.path_to_local_workdir / "history.db"
+        path_to_history_connection = self.path_to_local_workdir / "history.db"
         ###############################
         # update history connection   #
         ###############################
-        self.hx_con = sqlite3.connect(str(self.path_to_history_connection), isolation_level=None)
-        self.hx_con.execute("CREATE TABLE IF NOT EXISTS lastrun (unixtime DATETIME)")
+        self.hx_con = sqlite3.connect(str(path_to_history_connection), isolation_level=None)
+        self.hx_con.execute("CREATE TABLE IF NOT EXISTS lastrun (completed_time DATETIME)")
 
         # --------- create_new_connection() -------------
         def create_new_connection(self):
@@ -261,3 +263,31 @@ class CTX:
                     "Cannot query length of final final, it does not exist!"
                 )
         return filelen_rv
+
+    def update_last_run(self):
+        """insert or update the current timestamp on the history database and return if a day has passed.
+
+        """
+        #####################
+        # fetch last entry  #
+        #####################
+        import datetime
+        day_has_passed = False
+        row = self.hx_con.execute("SELECT completed_time FROM lastrun").fetchone()
+        if row == None:
+            self.hx_con.execute("INSERT INTO lastrun (completed_time) VALUES (?)", (datetime.datetime.now(),) )
+            day_has_passed = True
+        else:
+           dt = datetime.datetime.fromisoformat(row[0])
+           delta = datetime.datetime.now() - dt
+           delta_total_seconds = delta.total_seconds()
+           k_seconds_in_a_day = 60*60*24
+           # debug
+           k_seconds_in_a_day=1
+           # /debug
+           if delta_total_seconds > k_seconds_in_a_day:
+               self.hx_con.execute("UPDATE lastrun SET completed_time = (?)", (datetime.datetime.now(),) )
+               day_has_passed = True
+
+        return day_has_passed
+
