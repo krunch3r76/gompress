@@ -18,35 +18,35 @@ from tempfile import TemporaryDirectory
 import sys
 from debug.mylogging import g_logger
 
+
 def _find_common_root(paths):
-    """looks at each level of the parts and returns the highest common shared level
-
-    
-    """
+    """looks at each level of the parts and returns the highest common shared level"""
     from functools import reduce
-    paths = list(paths)
-    pathToSharedRoot = None 
-    level=0
 
-#    if len(paths) == 1:
-#        pathToSharedRoot = paths[0].
+    paths = list(paths)
+    pathToSharedRoot = None
+    level = 0
+
+    #    if len(paths) == 1:
+    #        pathToSharedRoot = paths[0].
     if len(paths) > 1:
         whetherLevelIsShared = True
         while whetherLevelIsShared:
-            partsListAtLevel = [ path.parts[level] for path in paths]
-            reduced1 = reduce(lambda a, b: a if a==b else None, partsListAtLevel)
+            partsListAtLevel = [path.parts[level] for path in paths]
+            reduced1 = reduce(lambda a, b: a if a == b else None, partsListAtLevel)
             if reduced1 is None:
                 whetherLevelIsShared = False
             else:
                 whetherLevelIsShared = True
-                level+=1
+                level += 1
         shared_level = level - 1
         root = Path(paths[0].parts[0])
-        pathToSharedRoot= root.joinpath(*paths[0].parts[1:shared_level+1])
+        pathToSharedRoot = root.joinpath(*paths[0].parts[1 : shared_level + 1])
     else:
         pathToSharedRoot = paths[0].parents[0]
         shared_level = len(paths[0].parts)
     return pathToSharedRoot, shared_level
+
 
 def _strip_root_from_paths(paths, pathToCommonRoots):
     stripped_paths_str = []
@@ -54,17 +54,16 @@ def _strip_root_from_paths(paths, pathToCommonRoots):
     for path in paths:
         path_stripped = str(path).replace(str(pathToCommonRoots), ".")
         stripped_paths_str.append(path_stripped)
-    return { str(Path(stripped_path_str)) for stripped_path_str in stripped_paths_str }
+    return [str(Path(stripped_path_str)) for stripped_path_str in stripped_paths_str]
+
 
 class SelfDestructPath:
-    """Creates temporary directory and constructs&wraps a Path object which is deleted upon garbage collection.
-
-    """
-
+    """Creates temporary directory and constructs&wraps a Path object which is deleted upon garbage collection."""
 
     def __init__(self, file):
         self.tempDir = TemporaryDirectory(prefix="gompress_")
         self.data = Path(self.tempDir.name) / file
+
 
 #    def __del__(self):
 #        try:
@@ -73,27 +72,30 @@ class SelfDestructPath:
 #        except:
 #            pass
 
+
 def _establish_temporary_tar(files: list, target_basename):
     # pick a basename for the tar file
     if target_basename is None:
         target_path_str = Path(files[0]).stem
         if not target_path_str.endswith(".tar"):
             target_path_str += ".tar"
-        target_path=Path(target_path_str)
+        target_path = Path(target_path_str)
     else:
         if not target_basename.endswith(".tar"):
             target_basename += ".tar"
-        target_path=Path(target_basename)
+        target_path = Path(target_basename)
     tarFile = SelfDestructPath(target_path)
     return tarFile
 
+
 def _normalize_input_files(files: list):
     # on windows, python will not glob when invoked from powershell, manually done here
-    if len(files) == 1 and '*' in files[0]:
-        globexp=Path(files[0]).name
+    if len(files) == 1 and "*" in files[0]:
+        globexp = Path(files[0]).name
         baseDirPath = Path(files[0]).parents[0]
         files = list(baseDirPath.glob(globexp))
     return files
+
 
 def archive(files, target_basename=None):
     """archives files into a temporary tar file and returns as a self deleting user Path object.
@@ -113,11 +115,11 @@ def archive(files, target_basename=None):
         find root
         strip root
         establish temporary tar
-        
+
     """
 
     files = _normalize_input_files(files)
-    paths = { Path(file).resolve() for file in files }
+    paths = [Path(file).resolve() for file in files]
     g_logger.debug(f"paths input: {paths}")
     pathToCommonRoot, level_end = _find_common_root(paths)
     g_logger.debug(f"path to common root: {pathToCommonRoot}")
@@ -138,6 +140,7 @@ def archive(files, target_basename=None):
     g_logger.debug(f"target archive file: {tarFileTarget.data}")
     # return SelfDestructPath(str(pathToTargetArchive))
     return tarFileTarget
+
 
 if __name__ == "__main__":
     import argparse

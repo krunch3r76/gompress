@@ -286,6 +286,7 @@ async def main(
                     f"Task {task} timed out on {ctx.provider_name}, time: {task.running_time}"
                     f"{TEXT_COLOR_DEFAULT}"
                 )
+                task.reject_result(retry=True)  # testing
                 raise
             # TODO catch activity terminated by provider..
             except Exception as e:
