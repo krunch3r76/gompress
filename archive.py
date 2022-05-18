@@ -23,7 +23,7 @@ def _find_common_root(paths):
     """looks at each level of the parts and returns the highest common shared level"""
     from functools import reduce
 
-    paths = list(paths)
+    paths = [Path(path) for path in paths]  # vestigial to list+rewrap into Path
     pathToSharedRoot = None
     level = 0
 
@@ -119,7 +119,10 @@ def archive(files, target_basename=None):
     """
 
     files = _normalize_input_files(files)
-    paths = [Path(file).resolve() for file in files]
+    paths = [
+        Path(file).resolve() for file in files
+    ]  # string form consistently hashable
+    paths.sort()
     g_logger.debug(f"paths input: {paths}")
     pathToCommonRoot, level_end = _find_common_root(paths)
     g_logger.debug(f"path to common root: {pathToCommonRoot}")
