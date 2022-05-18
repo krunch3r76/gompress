@@ -1,11 +1,12 @@
 """provides an archive function to tar an input list
 
 
-notes:
-    gompress will emulate tar cross platform features
-    gompress should be able to archive files at /some/path/*
-    on unix, this will be a list via globbing
-    on windows, the wildcard should have the list reinterpreted to glob (applied to each)
+requirements:
+    gompress shall emulate tar cross platform features
+    gompress shall be able to archive files at /some/path/*
+        on unix, this will be a list via globbing at shell level
+        on windows, the wildcard shall have the list reinterpreted to glob (applied to each)
+    the inputs shall be sorted before tar'ed
     the list is placed in a set to remove duplicate relative paths
     a common root is identified and the list is reinterpreted as relative to that root
     the list is passed to tar
@@ -119,9 +120,10 @@ def archive(files, target_basename=None):
     """
 
     files = _normalize_input_files(files)
-    paths = [
+    paths = {
         Path(file).resolve() for file in files
-    ]  # string form consistently hashable
+    }  # string form consistently hashable
+    paths = list(paths)  # removes any duplicates
     paths.sort()
     g_logger.debug(f"paths input: {paths}")
     pathToCommonRoot, level_end = _find_common_root(paths)
