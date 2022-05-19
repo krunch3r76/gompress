@@ -1,7 +1,7 @@
 # gompress
 compress or archive files over distributed golem nodes
 
-gompress solves the problem of needing to compress a file (such as an archive file) when doing so on the requestor side would be prohibitively time consuming (e.g. on a small virtual server).
+gompress solves the problem of needing to compress files when doing so on the requestor side would be prohibitively time consuming (e.g. on a small virtual server).
 
 at last, you can stop daydreaming on company time while waiting for a compression to finish on your tiny virtual server and get back to work. get excited!
 
@@ -48,7 +48,6 @@ $ cd xz-5.2.5
 (xz-5.2.5) $ ./configure --prefix=$HOME/.local
 (xz-5.2.5) $ make && make install
 ```
-**stay tuned for support for other compressors not requiring a separate installation**
 
 ## MOA
 gompress partitions/divides a file into measures of 64MiB, sending them to golem nodes, where xz is invoked to compress the partitions. the parts are asynchronously retrieved and stitched together into a cohesive whole that can be decompressed via xz.
