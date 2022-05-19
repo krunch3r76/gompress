@@ -1,11 +1,11 @@
 # gompress
-compress a file over distributed golem nodes
+compress or archive files over distributed golem nodes
 
 gompress solves the problem of needing to compress a file (such as an archive file) when doing so on the requestor side would be prohibitively time consuming (e.g. on a small virtual server).
 
 at last, you can stop daydreaming on company time while waiting for a compression to finish on your tiny virtual server and get back to work. get excited!
 
-currently, gompress compresses a single file (which itself may be an uncompressed archive) but collecting and archiving multiple files is a solution being explored. stay tuned.
+when gompress is given a directory or multiple files for the target, it will first prepare a tar file before compressing
 
 curious how golem's nodes can work for you? visit https://golem.network to learn
 
