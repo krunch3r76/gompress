@@ -9,13 +9,13 @@ the requestor agent provisioning segments of a file for providers on the network
 # skeleton and utils adopted from Golem yapapi's code
 
 
-MAX_PRICE_CPU_HR = "0.019"
-MAX_PRICE_DUR_HR = "0.0"
+MAX_PRICE_CPU_HR = "0.0446"
+MAX_PRICE_DUR_HR = "0.005"
 START_PRICE = "0.0"
 
 from datetime import datetime, timedelta
 
-MAX_MINUTES_UNTIL_TASK_IS_A_FAILURE = 5
+MAX_MINUTES_UNTIL_TASK_IS_A_FAILURE = 6
 MAX_TIMEOUT_FOR_TASK = timedelta(minutes=MAX_MINUTES_UNTIL_TASK_IS_A_FAILURE)
 
 import pathlib

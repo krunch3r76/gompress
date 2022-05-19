@@ -8,7 +8,13 @@ requirements:
     the inputs shall be sorted before tar'ed
     the list passed to tar shall contain unique elements only
     for multiple files, a common root is identified and the list is reinterpreted as relative to that root
+
+issues:
+    undefined result when interrupted and resumed if target files are modified in interim
 """
+
+# authored by krunch3r (https://www.github.com/krunch3r76)
+# license GPL 3.0
 
 from pathlib import Path
 from subprocess import run
