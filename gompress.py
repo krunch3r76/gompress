@@ -319,7 +319,7 @@ async def main(
     # Providers will not accept work if the timeout is outside of the [5 min, 30min] range.
     # We increase the lower bound to 6 min to account for the time needed for our file to
     # reach the providers.
-    min_timeout, max_timeout = 10, 30
+    min_timeout, max_timeout = MAX_MINUTES_UNTIL_TASK_IS_A_FAILURE*3, 30
     timeout = timedelta(
         minutes=max(
             min(init_overhead + len(list_pending_ids) * 2, max_timeout), min_timeout

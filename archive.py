@@ -125,7 +125,12 @@ def _establish_temporary_tar(files: list, target_basename):
     Process:
         [ no preference ]
         pick first stem
+        [ >1 files ]
         affix '_gompressed.tar'
+
+        [ 1 file ]
+        affix '.tar'
+
 
         [ preference ]
         ensure '.tar' ending
@@ -138,7 +143,10 @@ def _establish_temporary_tar(files: list, target_basename):
     """
     # pick a basename for the tar file
     if target_basename is None:
-        target_path_str = Path(files[0]).stem + "_gompressed.tar"
+        if len(files) > 1:
+            target_path_str = Path(files[0]).stem + "_gompressed.tar"
+        else: # implies directory
+            target_path_str = Path(files[0]).stem + ".tar"
         # TODO, check for duplicate name
 
         # if not target_path_str.endswith(".tar"):
