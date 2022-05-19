@@ -9,13 +9,13 @@ the requestor agent provisioning segments of a file for providers on the network
 # skeleton and utils adopted from Golem yapapi's code
 
 
-MAX_PRICE_CPU_HR = "0.019"
-MAX_PRICE_DUR_HR = "0.0"
+MAX_PRICE_CPU_HR = "0.0446"
+MAX_PRICE_DUR_HR = "0.005"
 START_PRICE = "0.0"
 
 from datetime import datetime, timedelta
 
-MAX_MINUTES_UNTIL_TASK_IS_A_FAILURE = 5
+MAX_MINUTES_UNTIL_TASK_IS_A_FAILURE = 6
 MAX_TIMEOUT_FOR_TASK = timedelta(minutes=MAX_MINUTES_UNTIL_TASK_IS_A_FAILURE)
 
 import pathlib
@@ -53,6 +53,7 @@ from debug.mylogging import g_logger
 from workdirectoryinfo import WorkDirectoryInfo
 from ctx import CTX
 from gs.playsound import play_sound
+from archive import archive
 
 try:
     moduleFilterProviderMS = False
@@ -285,6 +286,7 @@ async def main(
                     f"Task {task} timed out on {ctx.provider_name}, time: {task.running_time}"
                     f"{TEXT_COLOR_DEFAULT}"
                 )
+                task.reject_result(retry=True)  # testing
                 raise
             # TODO catch activity terminated by provider..
             except Exception as e:
@@ -297,7 +299,6 @@ async def main(
             script = ctx.new_script(
                 timeout=timedelta(minutes=MAX_MINUTES_UNTIL_TASK_IS_A_FAILURE)
             )
-
             if show_usage:
                 raw_state = await ctx.get_raw_state()
                 usage = format_usage(await ctx.get_usage())
@@ -318,7 +319,7 @@ async def main(
     # Providers will not accept work if the timeout is outside of the [5 min, 30min] range.
     # We increase the lower bound to 6 min to account for the time needed for our file to
     # reach the providers.
-    min_timeout, max_timeout = 10, 30
+    min_timeout, max_timeout = MAX_MINUTES_UNTIL_TASK_IS_A_FAILURE*3, 30
     timeout = timedelta(
         minutes=max(
             min(init_overhead + len(list_pending_ids) * 2, max_timeout), min_timeout
@@ -479,7 +480,12 @@ def add_arguments_to_command_line_parser():
     #########################
     # add arguments         #
     #########################
-    parser.add_argument("target", help="path to file to compress")
+    parser.add_argument(
+        "target",
+        help="file or dir/files to compress or archive respectively",
+        nargs="+",
+    )
+
     parser.add_argument(
         "--show-usage",
         action="store_true",
@@ -512,14 +518,25 @@ if __name__ == "__main__":
     # now = datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
     # parser.set_defaults(log_file=f"gompress-{now}.log")
     import os
-    if not os.environ.get('YAGNA_APPKEY', None):
-        print("whoa, hold on a minute, you haven't set YAGNA_APPKEY environment variable."
-                " you can't run a requestor app without it!")
+
+    if not os.environ.get("YAGNA_APPKEY", None):
+        print(
+            "whoa, hold on a minute, you haven't set YAGNA_APPKEY environment variable."
+            " you can't run a requestor app without it!"
+        )
         sys.exit(1)
 
     parser = add_arguments_to_command_line_parser()
     args = parser.parse_args()
-    target_file = Path(args.target)
+
+    target_file = None
+    target_file_archive = None
+
+    if len(args.target) == 1:
+        if not Path(args.target[0]).is_dir() and "*" not in args.target[0]:
+            target_file = Path(args.target[0])
+    if target_file is None:
+        target_file_archive = archive(args.target)
     data_dir = Path("./workdir")
     data_dir.mkdir(exist_ok=True)
 
@@ -528,7 +545,7 @@ if __name__ == "__main__":
     ################################################
     ctx = CTX(
         data_dir,
-        target_file,
+        target_file if target_file is not None else target_file_archive.data,
         args.xfer_compression_level,
         args.min_cpu_threads,
     )
@@ -605,3 +622,7 @@ if __name__ == "__main__":
             "As always, on behalf on the golem community, thank you for your participation"
             "\033[0m"
         )
+    ctx.target_open_file.close()
+    if target_file_archive is not None:
+        target_file_archive.tempDir.cleanup()
+        pass

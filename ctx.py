@@ -236,7 +236,6 @@ class CTX:
         ).fetchall()
         PATHSTR_FIELD_OFFSET = 0
         paths = [Path(record[PATHSTR_FIELD_OFFSET]) for record in recordset]
-        g_logger.debug(paths)
         # open first part for appending
         path_to_first = paths.pop(0)
         with open(str(path_to_first), "ab") as concat:
@@ -306,3 +305,4 @@ class CTX:
                 day_has_passed = True
 
         return day_has_passed
+
