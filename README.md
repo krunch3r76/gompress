@@ -14,7 +14,7 @@ curious how golem's nodes can work for you? visit https://golem.network to learn
 - a golem requestor installation with yagna client running and app-key exported etc
 - python 3.8-3.9
 
-tested on linux, windows, and mac os
+tested on linux, windows 10, and mac os
 
 ## VIDEO DEMO
 
