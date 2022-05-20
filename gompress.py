@@ -319,7 +319,7 @@ async def main(
     # Providers will not accept work if the timeout is outside of the [5 min, 30min] range.
     # We increase the lower bound to 6 min to account for the time needed for our file to
     # reach the providers.
-    min_timeout, max_timeout = MAX_MINUTES_UNTIL_TASK_IS_A_FAILURE*3, 30
+    min_timeout, max_timeout = MAX_MINUTES_UNTIL_TASK_IS_A_FAILURE * 3, 30
     timeout = timedelta(
         minutes=max(
             min(init_overhead + len(list_pending_ids) * 2, max_timeout), min_timeout
@@ -611,16 +611,16 @@ if __name__ == "__main__":
             f"You can find the compressed file at"
             f" \033[1;33m{ctx.path_to_final_file}\033[0m"
         )
+        print(
+            "\033[1m"
+            "As always, on behalf on the golem community, thank you for your participation"
+            "\033[0m"
+        )
     else:
         countPending = len(ctx.list_pending_ids())
         print(
             f"\033[1;31mthe run did not finish, please re-run to compress the"
             f" remaining {countPending} part{'s' if countPending > 1 else ''}.\033[0m"
-        )
-        print(
-            "\033[1m"
-            "As always, on behalf on the golem community, thank you for your participation"
-            "\033[0m"
         )
     ctx.target_open_file.close()
     if target_file_archive is not None:

@@ -9,8 +9,6 @@ requirements:
     the list passed to tar shall contain unique elements only
     for multiple files, a common root is identified and the list is reinterpreted as relative to that root
 
-issues:
-    undefined result when interrupted and resumed if target files are modified in interim
 """
 
 # authored by krunch3r (https://www.github.com/krunch3r76)
@@ -145,7 +143,7 @@ def _establish_temporary_tar(files: list, target_basename):
     if target_basename is None:
         if len(files) > 1:
             target_path_str = Path(files[0]).stem + "_gompressed.tar"
-        else: # implies directory
+        else:  # implies directory
             target_path_str = Path(files[0]).stem + ".tar"
         # TODO, check for duplicate name
 

@@ -15,9 +15,9 @@ def _partition(total, maxsize=None):
 
     Example:
         total length of 1001 with maxsize 250 to yield:
-        [ 0, 250, 500, 750, 1000, 1001 ]
+        [ 250, 500, 750, 1000, 1001 ]
 
-    
+
     Called By: _partitionRanges
     """
     if maxsize == None:
@@ -48,7 +48,7 @@ def _partitionRanges(target_length, maxsize=None):
 
     Example:
         target_length of 1001 with a max size of 250 to yield
-        [ (0,250), (250, 500), (500, 750), (750, 1000), (1000, 1) ]
+        [ (0,250), (250, 500), (500, 750), (750, 1000), (1000, 1001) ]
 
 
     called by _populate_connection
@@ -110,9 +110,10 @@ def create_connection(path_to_connection_file, path_to_target, workDirectoryInfo
 
     Every job to compress shall have a database to keep information about the work
     incuding the ranges of the target file to be compressed independently |Part|,
-    the expected checksum or length of the downloaded part to verify the downloaded
-    part |Checksum|, the paths to the processed parts before they are concatenated
-    |OutputFile|, and the path to the file to be compressed |OriginalFile|.
+    the expected checksum (hash or length) as text of the downloaded part to verify
+    the downloaded part |Checksum|, the paths to the processed parts before they are
+    concatenated |OutputFile|, and the hash identifying the file to be compressed
+    |OriginalFile|.
 
     Pre:
         None

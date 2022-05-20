@@ -278,7 +278,8 @@ class CTX:
         return filelen_rv
 
     def update_last_run(self):
-        """insert or update the current timestamp on the history database and return if a day has passed."""
+        """insert or update the current timestamp on the history database and return
+        whether a day has passed."""
         #####################
         # fetch last entry  #
         #####################
@@ -305,4 +306,3 @@ class CTX:
                 day_has_passed = True
 
         return day_has_passed
-
