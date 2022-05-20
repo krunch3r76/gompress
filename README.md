@@ -57,7 +57,7 @@ gompress partitions/divides a file into measures of 64MiB, sending them to golem
 the partition ranges are tabulated and all intermediate work retained. *this enables resuming a compression later*, as when network conditions or prices may be more favorable. **TRY IT on a file >64MiB by ctrl-c after at least one task has finished and resume**
 
 ## ABOUT ARCHIVING
-gompress will tar all contents of a directory if the target is a directory, otherwise it will change directory to the shared common root of all targets passed to the interpreter. in the latter case, if all the target files are in the same subdirectory, the tar file will change directory so that upon decompression the files are extracted to the working directory.
+gompress will tar an input directory and all of its contents, otherwise if multiple files are given, it will change directory to the shared common root of all targets. in the latter case, if all the target files are in the same subdirectory, the tar file will change directory so that upon decompression the files are extracted to the working directory.
 
 ## ADVANCED USAGE
 
