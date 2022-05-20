@@ -18,8 +18,10 @@ tested on linux, windows, and mac os
 
 ## VIDEO DEMO
 
-
 https://user-images.githubusercontent.com/46289600/166870523-9f7c6ca2-536d-4c0e-927b-486fdce9c240.mp4
+
+
+https://user-images.githubusercontent.com/46289600/169424458-81c15e0b-811b-4d0f-8982-68893e109c74.mp4
 
 
 ## SELF DEMO
@@ -53,6 +55,9 @@ $ cd xz-5.2.5
 gompress partitions/divides a file into measures of 64MiB, sending them to golem nodes, where xz is invoked to compress the partitions. the parts are asynchronously retrieved and stitched together into a cohesive whole that can be decompressed via xz.
 
 the partition ranges are tabulated and all intermediate work retained. *this enables resuming a compression later*, as when network conditions or prices may be more favorable. **TRY IT on a file >64MiB by ctrl-c after at least one task has finished and resume**
+
+## ABOUT ARCHIVING
+gompress will tar all contents of a directory if the target is a directory, otherwise it will change directory to the shared common root of all targets passed to the interpreter. in the latter case, if all the target files are in the same subdirectory, the tar file will change directory so that upon decompression the files are extracted to the working directory.
 
 ## ADVANCED USAGE
 
