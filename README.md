@@ -1,5 +1,6 @@
 # gompress
 compress or archive files over distributed golem nodes
+**NOTE: as of Decemer 8, 2022, golem network is undergoing an awkward upgrade and this project may not run until golem finishes its new SDK and network services, after which this project shall be updated**
 
 gompress solves the problem of needing to compress files when doing so on the requestor side would be prohibitively time consuming (e.g. on a small virtual server).
 
