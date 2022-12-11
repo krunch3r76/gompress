@@ -1,6 +1,5 @@
 # gompress
 compress or archive files over distributed golem nodes
-**NOTE: as of Decemer 8, 2022, golem network is undergoing an awkward upgrade and this project may not run until golem finishes its new SDK and network services, after which this project shall be updated**
 
 gompress solves the problem of needing to compress files when doing so on the requestor side would be prohibitively time consuming (e.g. on a small virtual server).
 
@@ -11,9 +10,9 @@ when gompress is given a directory or multiple files for the target, it will fir
 curious how golem's nodes can work for you? visit https://golem.network to learn
 
 ## REQUIREMENTS
-- yapapi 0.9.1
+- yapapi 0.10.0
 - a golem requestor installation with yagna client running and app-key exported etc
-- python 3.8-3.9
+- python 3.9-3.10
 
 tested on linux, windows 10, and mac os
 
@@ -26,12 +25,14 @@ https://user-images.githubusercontent.com/46289600/169424458-81c15e0b-811b-4d0f-
 
 
 ## SELF DEMO
-NOTE: This self demo uses tGLM nodes on public-beta, which tend to be better compatible with non-development versions.
+NOTE: This self demo uses tGLM nodes on public, which tend to be better compatible with non-development versions.
 ```bash
+() $ git checkout v0.2.1
+() $ cd gompress
 (gompress) $ wget http://aleph.gutenberg.org/ls-lR # alternatively, download with your browser
 (gompress) $ md5sum ls-lR # note this for later
 (gompress) $ yagna payment init --sender --network rinkeby
-(gompress) $ python3.9 gompress.py ls-lR --subnet-tag public-beta --network rinkeby
+(gompress) $ python3.9 gompress.py ls-lR --subnet-tag public --network rinkeby
 (gompress) $ cd workdir/hashvaluefromoutput/final
 (gompress final) $ xz -d ls-lR.xz
 (gompress final) $ md5sum ls-lR # compare with earlier
@@ -65,7 +66,7 @@ gompress will tar an input directory and all of its contents, otherwise if multi
 ### ask gompress to perform light local compression first to save on file transfer (xfer), i.e. upload time, significantly via --xfer-compression-level
 
 ```bash
-$ python3.9 ./gompress.py --network polygon --subnet-tag public-beta  --xfer-compression-level 1 myfile.raw
+$ python3.9 ./gompress.py --network polygon --subnet-tag public  --xfer-compression-level 1 myfile.raw
 ```
 
 ### clone gc__filterms into the project root directory
@@ -73,7 +74,7 @@ $ python3.9 ./gompress.py --network polygon --subnet-tag public-beta  --xfer-com
 ```bash
 $ export GNPROVIDER_BL=fascinated-system
 $ export FILTERMSVERBOSE=1
-$ python3.9 ./gompress.py myfilelarge.raw --network polygon --subnet-tag public-beta
+$ python3.9 ./gompress.py myfilelarge.raw --network polygon --subnet-tag public
 ```
 
 ## COMMENTS

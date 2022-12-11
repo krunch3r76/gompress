@@ -50,7 +50,7 @@ def build_parser(description: str) -> argparse.ArgumentParser:
         default="rinkeby",
         help="Payment network name, default: %(default)s",
     )
-    parser.add_argument("--subnet-tag", help="Subnet name, for example `devnet-beta`")
+    parser.add_argument("--subnet-tag", default="public", help="Subnet name, for example `public`")
     parser.add_argument(
         "--log-file",
         default=str(default_log_path),
