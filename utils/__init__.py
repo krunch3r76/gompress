@@ -47,7 +47,7 @@ def build_parser(description: str) -> argparse.ArgumentParser:
     parser.add_argument(
         "--payment-network",
         "--network",
-        default="rinkeby",
+        default="goerli",
         help="Payment network name, default: %(default)s",
     )
     parser.add_argument("--subnet-tag", default="public", help="Subnet name, for example `public`")
