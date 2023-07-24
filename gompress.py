@@ -9,8 +9,8 @@ the requestor agent provisioning segments of a file for providers on the network
 # skeleton and utils adopted from Golem yapapi's code
 
 
-MAX_PRICE_CPU_HR = "0.0446"
-MAX_PRICE_DUR_HR = "0.005"
+MAX_PRICE_CPU_HR = "1.0446"
+MAX_PRICE_DUR_HR = "1.005"
 START_PRICE = "0.0"
 
 from datetime import datetime, timedelta
