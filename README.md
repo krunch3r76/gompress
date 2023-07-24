@@ -10,7 +10,7 @@ when gompress is given a directory or multiple files for the target, it will fir
 curious how golem's nodes can work for you? visit https://golem.network to learn
 
 ## REQUIREMENTS
-- yapapi 0.10.0
+- yapapi 0.11.0
 - a golem requestor installation with yagna client running and app-key exported etc
 - python 3.9-3.10
 
@@ -28,14 +28,13 @@ https://user-images.githubusercontent.com/46289600/169424458-81c15e0b-811b-4d0f-
 NOTE: This self demo uses tGLM nodes on public, which tend to be better compatible with non-development versions.
 ```bash
 () $ cd gompress
-(gompress) $ git checkout v0.2.1
-(gompress) $ wget http://aleph.gutenberg.org/ls-lR # alternatively, download with your browser
-(gompress) $ md5sum ls-lR # note this for later
-(gompress) $ yagna payment init --sender --network rinkeby
-(gompress) $ python3.9 gompress.py ls-lR --subnet-tag public --network rinkeby
+(gompress) $ git checkout v0.2.2
+(gompress) $ curl https://cs.fit.edu/~mmahoney/compression/enwik8.zip | funzip > enwik8
+(gompress) $ md5sum enwik8 # note this for later
+(gompress) $ python3 gompress.py enwik8 --subnet-tag public
 (gompress) $ cd workdir/hashvaluefromoutput/final
 (gompress final) $ xz -d ls-lR.xz
-(gompress final) $ md5sum ls-lR # compare with earlier
+(gompress final) $ md5sum enwik8 # compare with original enwik8
 ```
 
 ## ABOUT XZ
