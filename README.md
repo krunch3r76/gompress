@@ -27,8 +27,8 @@ https://user-images.githubusercontent.com/46289600/169424458-81c15e0b-811b-4d0f-
 ## SELF DEMO
 NOTE: This self demo uses tGLM nodes on public, which tend to be better compatible with non-development versions.
 ```bash
-() $ git checkout v0.2.1
 () $ cd gompress
+(gompress) $ git checkout v0.2.1
 (gompress) $ wget http://aleph.gutenberg.org/ls-lR # alternatively, download with your browser
 (gompress) $ md5sum ls-lR # note this for later
 (gompress) $ yagna payment init --sender --network rinkeby
